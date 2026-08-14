@@ -1,0 +1,78 @@
+name: 開発タスク
+description: 開発に着手できる粒度の実装タスク。仕様が確定したものを起票する。
+title: "[Task]: "
+labels:
+  - "type: task"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        - 観測できる事実・確定した仕様のみ書いてください。**推測で埋めない**こと。
+        - 埋められない項目は、空欄にせず正確に `NOT_ENOUGH_INFO` と記入してください（未確定であることが情報です）。
+        - 1 issue = 1 タスク。複数の作業は分割して起票してください。
+  - type: textarea
+    id: goal
+    attributes:
+      label: ゴール（1文）
+      description: このタスクが完了した状態を1文で。
+      placeholder: 一覧画面にサーバーサイドページネーションを追加し、全件を閲覧できるようにする。
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 背景・コンテキスト
+      description: なぜ必要か、関連する既存の挙動・過去の経緯。関連 issue/PR があれば #番号 で参照。
+    validations:
+      required: true
+  - type: input
+    id: repo
+    attributes:
+      label: 対象リポジトリ
+      description: 主に変更するリポジトリ。複数なら全て。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 対象ファイル・範囲
+      description: 変更が入るであろうファイル/ディレクトリ/エンドポイント。分かる範囲で具体的に。未特定なら NOT_ENOUGH_INFO。
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: 実装方針
+      description: 望ましいアプローチ・設計方針。API仕様や型があれば記載。方針未定なら NOT_ENOUGH_INFO。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件（チェックリスト）
+      description: 「これが満たされたら完了」を検証可能な形で。PRのレビュー基準になります。
+      value: |
+        - [ ]
+        - [ ]
+        - [ ] 既存テストが通る / 必要なテストを追加した
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: テスト要件
+      description: 追加/更新すべきテスト。プロジェクトのテスト方針に従う。不要なら「不要」と明記。
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: 対象外（Out of Scope）
+      description: このタスクで「やらないこと」。スコープ膨張を防ぐため明示。
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: 参考リンク・添付
+      description: 仕様書・スレッド・スクショ・ログなど。
