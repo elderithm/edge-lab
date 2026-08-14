@@ -1,0 +1,65 @@
+name: 機能要望・改善提案
+description: 新機能やプロダクト改善を提案する（仕様が固まる前のアイデア段階でも可）。
+title: "[Feature]: "
+labels:
+  - "type: feature"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        具体的なユースケースとトレードオフとともに提案してください。
+        実装粒度まで固まっている場合は「開発タスク」テンプレートの利用を検討してください。
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要（1文）
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したい課題
+      description: どのユーザーのどんな痛みを解決するか。現状の何が不十分か。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する解決策
+      description: 望ましい挙動/API/UX をできる限り具体的に。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 代替案
+      description: 他に検討した方法と、それが劣る理由。
+  - type: textarea
+    id: impact
+    attributes:
+      label: 影響
+      description: |
+        - 影響を受けるユーザー/画面/リポジトリ
+        - 深刻度（不便 / ワークフローを止める 等）
+        - 頻度（常時 / 断続 / エッジケース）
+        - 放置した場合の帰結
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件（あれば）
+      value: |
+        - [ ]
+        - [ ]
+  - type: dropdown
+    id: intent
+    attributes:
+      label: 実装の担い手
+      default: 2
+      options:
+        - Claude Code に任せたい（仕様が固まり次第）
+        - 自分で実装する
+        - 提案のみ（実装は相談）
+    validations:
+      required: true
