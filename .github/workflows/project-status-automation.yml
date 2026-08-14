@@ -1,0 +1,71 @@
+name: Project status automation
+
+# agent: ready ラベル付与 → Project Status を Ready に
+# PR作成（Closes #... で紐づく子issue） → Project Status を In review に
+#
+# トークン使い分け:
+#   - PR/issueの読み取り = 標準 GITHUB_TOKEN（permissions で read 付与）
+#   - org Project への追加・更新 = PAT (secrets.ADD_TO_PROJECT_PAT)
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+env:
+  PROJECT_ID: PVT_kwDOEYICwc4BgWM4
+  STATUS_FIELD_ID: PVTSSF_lADOEYICwc4BgWM4zhaisyU
+  READY_OPTION_ID: 4b70f737
+  IN_REVIEW_OPTION_ID: f2b45e74
+
+jobs:
+  set-ready:
+    if: "${{ github.event_name == 'issues' && github.event.label.name == 'agent: ready' }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set labeled issue to Ready
+        env:
+          GH_TOKEN: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+        run: |
+          ITEM_ID=$(gh api graphql \
+            -f query='mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}' \
+            -f p="$PROJECT_ID" -f c="$ISSUE_NODE_ID" \
+            --jq '.data.addProjectV2ItemById.item.id')
+          gh api graphql \
+            -f query='mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$o}}){projectV2Item{id}}}' \
+            -f p="$PROJECT_ID" -f i="$ITEM_ID" -f f="$STATUS_FIELD_ID" -f o="$READY_OPTION_ID"
+          echo "Issue set to Ready."
+
+  set-in-review:
+    if: "${{ github.event_name == 'pull_request' }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Set linked issues to In review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAT: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+        run: |
+          ISSUES=$(gh api graphql \
+            -f query='query($id:ID!){node(id:$id){... on PullRequest{closingIssuesReferences(first:20){nodes{id}}}}}' \
+            -f id="$PR_NODE_ID" \
+            --jq '.data.node.closingIssuesReferences.nodes[].id')
+          if [ -z "$ISSUES" ]; then
+            echo "このPRに Closes #... で紐づく issue はありません。処理なし。"
+            exit 0
+          fi
+          for ISSUE_ID in $ISSUES; do
+            ITEM_ID=$(GH_TOKEN="$PAT" gh api graphql \
+              -f query='mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}' \
+              -f p="$PROJECT_ID" -f c="$ISSUE_ID" \
+              --jq '.data.addProjectV2ItemById.item.id')
+            GH_TOKEN="$PAT" gh api graphql \
+              -f query='mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$o}}){projectV2Item{id}}}' \
+              -f p="$PROJECT_ID" -f i="$ITEM_ID" -f f="$STATUS_FIELD_ID" -f o="$IN_REVIEW_OPTION_ID"
+            echo "Issue $ISSUE_ID set to In review."
+          done
