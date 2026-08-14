@@ -1,0 +1,76 @@
+name: バグ報告
+description: 不具合・リグレッション・クラッシュ・誤動作を報告する。
+title: "[Bug]: "
+labels:
+  - "type: bug"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        観測された証拠に基づいて簡潔に記入してください。**推測で補完しない**こと。
+        証拠から埋められない項目は、空欄にせず `NOT_ENOUGH_INFO` と記入してください。
+        1 issue = 1 バグ。複数の不具合は分割して報告してください。
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: 種別
+      options:
+        - リグレッション（以前は動作していたが今は失敗する）
+        - クラッシュ（プロセス/アプリが落ちる・固まる）
+        - 誤動作（クラッシュせず出力/状態が誤っている）
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 深刻度
+      description: 本番ユーザー影響の大きさ。P0=本番障害/データ毀損の恐れ。
+      options:
+        - "P0（本番障害・即対応）"
+        - "P1（ユーザー影響大）"
+        - "P2（通常）"
+        - "P3（軽微）"
+    validations:
+      required: true
+  - type: input
+    id: repo
+    attributes:
+      label: 対象リポジトリ
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が壊れているかを観測事実で1文。
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 再現手順
+      description: 最短の決定的な再現手順。証拠から辿れない場合は NOT_ENOUGH_INFO。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する挙動
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の挙動
+      description: 観測された結果のみ。エラーメッセージ・ログ行を添えて。
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: 環境・バージョン
+      description: ブランチ/コミット/デプロイ環境（本番/ステージング）/ブラウザ・OS等。
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・スクリーンショット
