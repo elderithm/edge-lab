@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": 1767225600,
+    "transactionHash": "0xAAAA000000000000000000000000000000000000000000000000000000000001",
+    "asset": "1000000000000000000000000000000000000000000000000000000000000001",
+    "side": "BUY",
+    "type": "TRADE",
+    "price": "0.42",
+    "size": "100",
+    "usdcSize": "42",
+    "title": "Will the example event happen before 2027?",
+    "outcome": "Yes",
+    "eventSlug": "example-binary-market",
+    "conditionId": "0xEXAMPLECONDITIONID"
+  },
+  {
+    "timestamp": 1767229200,
+    "transactionHash": "0xAAAA000000000000000000000000000000000000000000000000000000000002",
+    "asset": "1000000000000000000000000000000000000000000000000000000000000001",
+    "side": "SELL",
+    "type": "TRADE",
+    "price": 0.55,
+    "size": 40,
+    "usdcSize": 22,
+    "title": "Will the example event happen before 2027?",
+    "outcome": "Yes",
+    "eventSlug": "example-binary-market",
+    "conditionId": "0xEXAMPLECONDITIONID"
+  },
+  {
+    "timestamp": 1767232800,
+    "transactionHash": "0xAAAA000000000000000000000000000000000000000000000000000000000003",
+    "asset": "1000000000000000000000000000000000000000000000000000000000000009",
+    "side": "BUY",
+    "type": "TRADE",
+    "price": "0.88",
+    "size": "10",
+    "title": "A different market with no usdcSize field",
+    "outcome": "No"
+  }
+]

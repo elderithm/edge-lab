@@ -1,0 +1,24 @@
+{
+  "name": "dreamdex-bridge",
+  "version": "1.0.0",
+  "description": "Thin DreamDEX Event Contracts transport/execution bridge over @somnia-chain/markets-sdk. No analytic logic lives here.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "bridge": "node src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["dreamdex", "somnia", "event-contracts"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@somnia-chain/markets-sdk": "^0.29.0",
+    "viem": "^2.56.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}
