@@ -17,6 +17,8 @@ import typer
 from .core.risk import RiskConfig, RiskEngine
 from .core.signal import Signal
 from .core.types import Side, TradingMode
+from .dashboard.server import make_server
+from .dashboard.service import scan_signals
 from .errors import EdgeLabError
 from .paper.dreamdex_paper import DreamdexPaperDB
 from .strategies.event_contracts import build_event_signal
@@ -88,16 +90,9 @@ def scan(
     asset_list = [a.strip().upper() for a in assets.split(",") if a.strip()]
     try:
         venue = _source(source, now, config)
-        markets = venue.list_markets(asset_list)
-        signals: list[Signal] = []
-        for m in markets:
-            try:
-                signals.append(_signal_for(venue, m.market_id, Decimal(str(size)), now, engine))
-            except EdgeLabError:
-                continue  # a single market failure must not abort the scan
-        signals.sort(key=lambda s: s.rank_score, reverse=True)
+        signals = scan_signals(venue, asset_list, size=Decimal(str(size)), now=now, risk_engine=engine)
         if json_out:
-            _echo_json({"scanned": len(markets), "signals": [s.to_dict() for s in signals]})
+            _echo_json({"scanned": len(signals), "signals": [s.to_dict() for s in signals]})
             return
         if not signals:
             typer.echo("No markets available.")
@@ -328,5 +323,28 @@ def execute(
             )
         )
         typer.secho(f"Submitted ({config.network}): {result.detail}", fg=typer.colors.GREEN)
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc, verbose)
+
+
+@dreamdex_app.command()
+def dashboard(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8787, "--port"),
+    source: str = typer.Option("live", "--source", help="live | fixture"),
+    assets: str = typer.Option("BTC,ETH", "--assets"),
+    size: float = typer.Option(5.0, "--size"),
+    verbose: bool = typer.Option(False, "--verbose"),
+) -> None:
+    """Serve the read-only DreamDEX Edge Lab dashboard (decision-support only)."""
+    asset_tuple = tuple(a.strip().upper() for a in assets.split(",") if a.strip())
+    try:
+        server = make_server(host, port, source=source, assets=asset_tuple, size=Decimal(str(size)))
+        label = "SIMULATED FIXTURE" if source == "fixture" else "LIVE Shannon testnet"
+        typer.secho(f"DreamDEX Edge Lab dashboard [{label}] → http://{host}:{port}", fg=typer.colors.GREEN)
+        typer.echo("Read-only decision-support. Execution stays in the CLI. Ctrl+C to stop.")
+        server.serve_forever()
+    except KeyboardInterrupt:
+        typer.echo("\nStopped.")
     except Exception as exc:  # noqa: BLE001
         _fail(exc, verbose)

@@ -135,10 +135,14 @@ risk checks — lets you paper-trade or submit a Somnia **Shannon Testnet** orde
   all analytics stay in Python.
 
 ```bash
+# Local read-only dashboard (§32-style cards; live or --source fixture):
+edge-lab dreamdex dashboard            # http://127.0.0.1:8787
+
 # Offline, deterministic, clearly SIMULATED (no wallet, no network):
 edge-lab dreamdex scan --source fixture
 edge-lab dreamdex inspect <marketId> --source fixture   # full reasoning chain
 edge-lab dreamdex paper-trade <marketId> --source fixture
+edge-lab dreamdex preview <marketId> --side UP --price 0.55 --size 5  # rehearse a testnet order (no wallet)
 edge-lab dreamdex report
 
 # Live testnet reads (configure dreamdex-bridge/.env with INDEXER_URL):
