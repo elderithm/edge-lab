@@ -2,11 +2,25 @@
  * DreamDEX transport/execution commands. This layer ONLY moves data in/out of
  * the official SDK and normalizes it to plain JSON. No probability, edge, risk,
  * or strategy logic lives here — that is all in the Python core.
+ *
+ * All reads use the low-level client's one-shot / live-filtered methods
+ * (`listLiveBinaryMarkets`, `getMarket`, `getMarketOnchain`, `getBinaryOrderBook`)
+ * — never `loadMarkets()`, which fetches the entire (huge, rolling) registry.
  */
 import type { SomniaMarkets } from "@somnia-chain/markets-sdk";
 import { type BridgeEnv, BridgeError } from "./env.ts";
 
 const SUPPORTED_ASSETS = new Set(["BTC", "ETH"]);
+const RAW6 = 1_000_000; // binary pools use 6 decimals (DECIMALS)
+
+// getMarketOnchain().status is the numeric contract enum, not a string.
+const ONCHAIN_STATUS = ["Listed", "Trading", "Locked", "Settling", "Resolved", "Voided", "Finalized"];
+
+function onchainStatusStr(v: unknown): string | null {
+  const n = Number(v);
+  if (Number.isInteger(n) && n >= 0 && n < ONCHAIN_STATUS.length) return ONCHAIN_STATUS[n];
+  return typeof v === "string" && v ? v : null;
+}
 
 type AnyRec = Record<string, unknown>;
 
@@ -16,70 +30,68 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function human6(raw: unknown): number {
+  return Number(raw as bigint | number | string) / RAW6;
+}
+
 function windowLabel(tradingStart: number | null, expiry: number | null): string | null {
   if (tradingStart === null || expiry === null) return null;
   const secs = expiry - tradingStart;
   if (secs <= 0) return null;
   if (secs === 900) return "15m";
   if (secs === 3600) return "1h";
+  if (secs === 60) return "1m";
   const mins = Math.round(secs / 60);
-  return `${mins}m`;
+  return mins >= 1 ? `${mins}m` : `${secs}s`;
 }
 
-async function loadBinaryMarkets(exchange: SomniaMarkets): Promise<{ symbol: string; info: AnyRec }[]> {
-  const markets = await exchange.loadMarkets();
-  const out: { symbol: string; info: AnyRec }[] = [];
-  for (const [symbol, m] of Object.entries(markets)) {
-    const rec = m as unknown as AnyRec;
-    if (rec.type === "binary") out.push({ symbol, info: rec.info as AnyRec });
-  }
-  return out;
-}
-
-function marketRow(symbol: string, info: AnyRec): AnyRec {
-  const tradingStart = num(info.tradingStart);
-  const expiry = num(info.expiry);
+function marketRow(m: AnyRec, poolOverride?: unknown): AnyRec {
+  const tradingStart = num(m.tradingStart);
+  const expiry = num(m.expiry);
+  const asset = String(m.asset ?? "");
+  const win = windowLabel(tradingStart, expiry);
+  const pool = poolOverride ?? m.poolAddress ?? null;
+  const expIso = expiry ? new Date(expiry * 1000).toISOString().slice(11, 19) : "?";
   return {
     venue: "dreamdex",
-    marketId: String(info.marketId ?? "").toLowerCase(),
-    asset: String(info.asset ?? ""),
-    symbol,
-    upSymbol: symbol, // YES is the default outcome the facade resolves
-    downSymbol: `${symbol}#NO`,
-    status: String(info.status ?? "Unknown"),
+    marketId: String(m.marketId ?? "").toLowerCase(),
+    asset,
+    symbol: `${asset}-${win ?? "?"}@${expIso}`,
+    status: String(m.status ?? "Unknown"),
     tradingStart,
     expiry,
-    poolAddress: info.poolAddress ? String(info.poolAddress) : null,
-    nonce: info.nonce != null ? String(info.nonce) : null,
-    window: windowLabel(tradingStart, expiry),
+    poolAddress: pool ? String(pool) : null,
+    nonce: m.nonce != null ? String(m.nonce) : null,
+    window: win,
   };
 }
 
-async function findByMarketId(exchange: SomniaMarkets, marketId: string): Promise<{ symbol: string; info: AnyRec }> {
-  const wanted = marketId.toLowerCase();
-  const rows = await loadBinaryMarkets(exchange);
-  const hit = rows.find((r) => String(r.info.marketId ?? "").toLowerCase() === wanted);
-  if (!hit) throw new BridgeError("MARKET_NOT_FOUND", `no binary market with marketId ${marketId}`);
-  return hit;
+/** List currently-live BTC/ETH Event Contracts (server-side filtered). */
+export async function discover(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
+  const assets = new Set(
+    (Array.isArray(params.assets) ? (params.assets as string[]) : [...SUPPORTED_ASSETS]).map((a) =>
+      a.toUpperCase(),
+    ),
+  );
+  const limit = num(params.limit) ?? 100;
+  const live = (await exchange.client.listLiveBinaryMarkets({ limit })) as unknown as AnyRec[];
+  const markets = live
+    .filter((m) => assets.has(String(m.asset ?? "").toUpperCase()) && String(m.status) === "Trading")
+    .map((m) => marketRow(m));
+  return { source: "LIVE_DREAMDEX", markets };
 }
 
-/** List live BTC/ETH Event Contracts, keyed by canonical marketId. */
-export async function discover(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
-  const assets: string[] = Array.isArray(params.assets)
-    ? (params.assets as string[]).map((a) => a.toUpperCase())
-    : [...SUPPORTED_ASSETS];
-  const rows = await loadBinaryMarkets(exchange);
-  const markets = rows
-    .map((r) => marketRow(r.symbol, r.info))
-    .filter((r) => assets.includes(String(r.asset).toUpperCase()));
-  return { source: "LIVE_DREAMDEX", markets };
+async function getMarketRowOrThrow(exchange: SomniaMarkets, marketId: string): Promise<AnyRec> {
+  const row = (await exchange.client.getMarket(marketId)) as unknown as AnyRec | null;
+  if (!row || !row.marketId) throw new BridgeError("MARKET_NOT_FOUND", `no market with marketId ${marketId}`);
+  return row;
 }
 
 /** Fresh on-chain market detail — status + opening reference. Call before writes. */
 export async function market(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
   const marketId = String(params.marketId ?? "");
   if (!marketId) throw new BridgeError("CONFIG_ERROR", "marketId is required");
-  const found = await findByMarketId(exchange, marketId);
+  const row = await getMarketRowOrThrow(exchange, marketId);
   const onchain = (await exchange.client.getMarketOnchain(marketId as `0x${string}`)) as unknown as AnyRec;
   let openingReference: number | null = null;
   try {
@@ -88,101 +100,97 @@ export async function market(exchange: SomniaMarkets, params: AnyRec): Promise<A
   } catch {
     openingReference = null; // opening question may not be answered yet
   }
-  const row = marketRow(found.symbol, found.info);
   return {
     source: "LIVE_DREAMDEX",
-    ...row,
-    // On-chain truth overrides the (possibly lagging) indexer status:
-    status: String(onchain.status ?? row.status),
+    ...marketRow(row),
+    // on-chain (numeric enum) truth overrides possibly-lagging indexer status
+    status: onchainStatusStr(onchain.status) ?? String(row.status),
     voided: Boolean(onchain.voided ?? false),
     resolvedAtTimestamp: num(onchain.resolvedAtTimestamp),
     openingReference,
   };
 }
 
-/** Executable Up/Down books for a market, addressed by canonical marketId. */
+/** Executable Up/Down books via one on-chain read of the market's current pool. */
 export async function orderbook(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
   const marketId = String(params.marketId ?? "");
-  const depth = num(params.depth) ?? 50;
+  const depth = num(params.depth) ?? 25;
   if (!marketId) throw new BridgeError("CONFIG_ERROR", "marketId is required");
-  const found = await findByMarketId(exchange, marketId);
-  const upBook = await exchange.fetchOrderBook(found.symbol, depth);
-  const downBook = await exchange.fetchOrderBook(`${found.symbol}#NO`, depth);
+  const row = await getMarketRowOrThrow(exchange, marketId);
+  const pool = String(row.poolAddress ?? "");
+  if (!pool) throw new BridgeError("MARKET_NOT_FOUND", `market ${marketId} has no bound pool`);
+  const book = (await exchange.client.getBinaryOrderBook(pool as `0x${string}`, { depth })) as unknown as AnyRec;
+  const levels = (side: unknown): [number, number][] =>
+    Array.isArray(side) ? side.map((l: AnyRec) => [human6(l.price), human6(l.size)] as [number, number]) : [];
   return {
     source: "LIVE_DREAMDEX",
     marketId: marketId.toLowerCase(),
     capturedAt: Math.floor(Date.now() / 1000),
-    up: { asks: upBook.asks, bids: upBook.bids },
-    down: { asks: downBook.asks, bids: downBook.bids },
+    up: { asks: levels(book.yesAsks), bids: levels(book.yesBids) },
+    down: { asks: levels(book.noAsks), bids: levels(book.noBids) },
   };
 }
 
-/**
- * Underlying price snapshot + recent 1m closes for an asset (BTC/ETH). Returns
- * RAW closes only — the Python core computes returns/volatility, not this layer.
- */
+/** Underlying price + recent price ticks (raw; Python computes volatility). */
 export async function price(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
   const asset = String(params.asset ?? "").toUpperCase();
-  const limit = num(params.limit) ?? 30;
+  const limit = num(params.limit) ?? 40;
   if (!asset) throw new BridgeError("CONFIG_ERROR", "asset is required (e.g. BTC)");
   const now = Math.floor(Date.now() / 1000);
-  const live = (await exchange.fetchPrice(asset)) as unknown as AnyRec | null;
-  if (!live || num(live.price) === null) {
-    throw new BridgeError("STALE_PRICE_DATA", `no live price for ${asset}`);
-  }
+  const live = (await exchange.client.fetchPrice(asset)) as unknown as AnyRec | null;
+  if (!live || num(live.price) === null) throw new BridgeError("STALE_PRICE_DATA", `no live price for ${asset}`);
   let closes: [number, number][] = [];
-  let intervalSeconds = 60;
   try {
-    const ohlcv = (await exchange.fetchPriceOHLCV(asset, "1m", undefined, limit)) as unknown as number[][];
-    closes = ohlcv
-      .filter((c) => Array.isArray(c) && c.length >= 5)
-      .map((c) => [Math.floor(c[0] / 1000), c[4]] as [number, number]);
+    const hist = (await exchange.client.fetchPriceHistory(asset, { limit })) as unknown as AnyRec[];
+    closes = hist
+      .map((p) => [num(p.blockTimestamp ?? p.timestamp ?? p.ts), num(p.price)] as [number | null, number | null])
+      .filter((c): c is [number, number] => c[0] !== null && c[1] !== null && c[1] > 0);
+    closes.sort((a, b) => a[0] - b[0]);
   } catch {
-    closes = []; // candles optional; Python treats missing vol as low confidence
+    closes = [];
   }
   return {
     source: "dreamdex-pricefeed",
     asset,
     price: num(live.price),
-    timestamp: Math.floor((num(live.timestamp) ?? now * 1000) / 1000),
+    timestamp: num(live.blockTimestamp) ?? now,
     receivedAt: now,
-    intervalSeconds,
+    intervalSeconds: 0, // irregular ticks; Python uses the per-point timestamps
     closes,
   };
 }
 
 /**
- * Submit a Shannon Testnet order. Re-reads on-chain status immediately before
- * signing and refuses anything but a TRADING market. Never called in paper mode.
+ * Submit a Shannon Testnet order via the low-level trader. Re-reads on-chain
+ * status immediately before signing and refuses anything but a TRADING market.
+ * Never called in paper mode.
  */
 export async function placeOrder(exchange: SomniaMarkets, env: BridgeEnv, params: AnyRec): Promise<AnyRec> {
   const marketId = String(params.marketId ?? "");
   const side = String(params.side ?? "").toUpperCase(); // UP | DOWN
   const price = num(params.price);
   const size = num(params.size);
-  const orderType = (String(params.orderType ?? "limit").toLowerCase() === "market" ? "market" : "limit") as
-    | "limit"
-    | "market";
-  if (!marketId || (side !== "UP" && side !== "DOWN") || size === null || size <= 0) {
-    throw new BridgeError("CONFIG_ERROR", "marketId, side (UP|DOWN) and positive size are required");
+  if (!marketId || (side !== "UP" && side !== "DOWN") || size === null || size <= 0 || price === null) {
+    throw new BridgeError("CONFIG_ERROR", "marketId, side (UP|DOWN), positive size and price are required");
   }
-  const found = await findByMarketId(exchange, marketId);
-
-  // Transaction safety: validate current on-chain status right before signing.
+  // Transaction safety: validate current on-chain status right before signing,
+  // and resolve the market's CURRENT pool (pools are recycled) from marketId.
+  const row = await getMarketRowOrThrow(exchange, marketId);
+  const pool = String(row.poolAddress ?? "");
+  if (!pool) throw new BridgeError("MARKET_NOT_FOUND", `market ${marketId} has no bound pool`);
   const onchain = (await exchange.client.getMarketOnchain(marketId as `0x${string}`)) as unknown as AnyRec;
-  const status = String(onchain.status ?? "Unknown");
+  const status = onchainStatusStr(onchain.status) ?? "Unknown";
   if (status !== "Trading") {
     throw new BridgeError("MARKET_NOT_TRADING", `market ${marketId} status is ${status}, not Trading`);
   }
-
-  const ref = side === "UP" ? found.symbol : `${found.symbol}#NO`;
-  const result = (await exchange.createOrder(
-    ref,
-    orderType,
-    "buy",
-    size,
-    price ?? undefined,
-  )) as unknown as AnyRec;
+  const trader = exchange.client.createTrader({ privateKey: env.privateKey as `0x${string}` });
+  const result = (await trader.placeOrder({
+    pool: pool as `0x${string}`,
+    side: side === "UP" ? "BUY_YES" : "BUY_NO",
+    price: BigInt(Math.round(price * RAW6)),
+    quantity: BigInt(Math.round(size * RAW6)),
+    autoApprove: true,
+  })) as unknown as AnyRec;
   return {
     source: "LIVE_DREAMDEX",
     submitted: true,

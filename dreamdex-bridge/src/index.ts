@@ -62,11 +62,19 @@ async function main(): Promise<void> {
         `unknown command '${cmd}' (discover|market|orderbook|price|place-order|health)`,
       );
   }
-  process.stdout.write(JSON.stringify(result));
+  emit(result, 0);
+}
+
+/**
+ * Write the JSON result and force-exit once it is flushed. The SDK keeps
+ * chain/price-feed sockets open, so a one-shot command would otherwise hang the
+ * process until its caller times out; a one-shot request/response must exit.
+ */
+function emit(obj: unknown, code: number): void {
+  process.stdout.write(JSON.stringify(obj), () => process.exit(code));
 }
 
 main().catch((err: unknown) => {
   const message = err instanceof Error ? err.message : String(err);
-  process.stdout.write(JSON.stringify({ error: { code: mapErrorCode(err), message } }));
-  process.exitCode = 1;
+  emit({ error: { code: mapErrorCode(err), message } }, 1);
 });

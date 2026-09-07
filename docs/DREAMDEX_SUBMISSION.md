@@ -53,13 +53,22 @@ edge-lab dreamdex paper-trade 0x000000000000000000000000000000000000000000000000
 edge-lab dreamdex report
 ```
 
-Live testnet reads (set the DreamDEX testnet indexer URL):
+Live testnet reads (verified against Shannon testnet):
 
 ```bash
-cd dreamdex-bridge && npm install && cp .env.example .env   # set INDEXER_URL, NETWORK=testnet
-edge-lab dreamdex scan            # live discovery + model + executable edge
+cd dreamdex-bridge && npm install
+# Shannon testnet endpoints (from the markets-sdk README):
+export INDEXER_URL="https://dev.smk.somnia.host/v1/graphql"
+export NETWORK=testnet TRADING_MODE=paper
+edge-lab dreamdex scan --assets BTC,ETH   # live discovery + model + executable edge
 edge-lab dreamdex inspect <marketId>
 ```
+
+Live discovery and the full read pipeline (on-chain status, order book, price
+feed → model → edge → risk) are verified end-to-end against Shannon testnet. When
+the live venue has no started/liquid market, the tool honestly reports
+`LOW_CONFIDENCE` / `INSUFFICIENT_LIQUIDITY` / `TOO_CLOSE_TO_EXPIRY` — it never
+fabricates an edge.
 
 Testnet execution (dedicated hackathon testnet wallet):
 

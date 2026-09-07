@@ -9,7 +9,11 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from ..core.probability import estimate_up_probability, volatility_from_closes
+from ..core.probability import (
+    estimate_up_probability,
+    volatility_from_closes,
+    volatility_per_sqrt_sec_from_series,
+)
 from ..core.risk import RiskEngine
 from ..core.signal import Signal, evaluate_market
 from ..core.types import (
@@ -55,7 +59,11 @@ def build_probability(
     now: int,
 ) -> ProbabilityEstimate:
     tte = market.time_to_expiry(now)
-    vol = volatility_from_closes(list(underlying.closes), underlying.interval_seconds)
+    # Prefer the timestamp-aware estimator (irregular ticks); fall back to the
+    # fixed-interval estimator when a uniform interval is supplied.
+    vol = volatility_per_sqrt_sec_from_series(list(underlying.closes))
+    if vol is None and underlying.interval_seconds > 0:
+        vol = volatility_from_closes(list(underlying.closes), underlying.interval_seconds)
     confidence = _confidence(
         has_vol=vol is not None,
         sample_size=len(underlying.closes),

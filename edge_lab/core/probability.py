@@ -54,6 +54,30 @@ def volatility_from_closes(closes: list[tuple[int, Decimal]], interval_seconds: 
     return realized_vol_per_sqrt_sec(log_returns, interval_seconds)
 
 
+def volatility_per_sqrt_sec_from_series(points: list[tuple[int, Decimal]]) -> Decimal | None:
+    """Per-second volatility from irregularly spaced (ts, price) ticks.
+
+    Uses the realized-variance estimator sqrt(sum(r_i^2) / sum(dt_i)), which is
+    robust to uneven sampling (e.g. per-block price-feed ticks) — unlike a fixed
+    interval assumption.
+    """
+    pts = sorted(((t, p) for t, p in points if p > 0), key=lambda x: x[0])
+    if len(pts) < 3:
+        return None
+    ssr = Decimal(0)
+    total_dt = Decimal(0)
+    for (t0, p0), (t1, p1) in zip(pts, pts[1:], strict=False):
+        dt = Decimal(t1 - t0)
+        if dt <= 0:
+            continue
+        r = Decimal(math.log(float(p1 / p0)))
+        ssr += r * r
+        total_dt += dt
+    if total_dt <= 0:
+        return None
+    return (ssr / total_dt).sqrt()
+
+
 def estimate_up_probability(
     *,
     current_price: Decimal,
