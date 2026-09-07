@@ -52,6 +52,19 @@ class DreamdexAdapter(TradingVenue):
         payload = self.bridge.invoke("price", {"asset": asset, "limit": limit})
         return underlying_from_json(payload)
 
+    def preview_order(self, request: OrderRequest) -> dict[str, object]:
+        """Resolve pool + on-chain status and build raw order params (no signing).
+
+        Needs no wallet; a safe live rehearsal of a testnet order.
+        """
+        params = {
+            "marketId": request.market_id,
+            "side": request.side.value,
+            "size": str(request.size),
+            "price": str(request.limit_price if request.limit_price is not None else 0),
+        }
+        return self.bridge.invoke("preview-order", params)
+
     def place_order(self, request: OrderRequest) -> OrderResult:
         """Submit a real (testnet/mainnet) order. Refused in paper mode.
 

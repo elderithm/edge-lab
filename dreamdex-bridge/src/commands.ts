@@ -160,12 +160,7 @@ export async function price(exchange: SomniaMarkets, params: AnyRec): Promise<An
   };
 }
 
-/**
- * Submit a Shannon Testnet order via the low-level trader. Re-reads on-chain
- * status immediately before signing and refuses anything but a TRADING market.
- * Never called in paper mode.
- */
-export async function placeOrder(exchange: SomniaMarkets, env: BridgeEnv, params: AnyRec): Promise<AnyRec> {
+function validateOrderInput(params: AnyRec): { marketId: string; side: string; price: number; size: number } {
   const marketId = String(params.marketId ?? "");
   const side = String(params.side ?? "").toUpperCase(); // UP | DOWN
   const price = num(params.price);
@@ -173,6 +168,44 @@ export async function placeOrder(exchange: SomniaMarkets, env: BridgeEnv, params
   if (!marketId || (side !== "UP" && side !== "DOWN") || size === null || size <= 0 || price === null) {
     throw new BridgeError("CONFIG_ERROR", "marketId, side (UP|DOWN), positive size and price are required");
   }
+  return { marketId, side, price, size };
+}
+
+/**
+ * Resolve pool + on-chain status and build the EXACT raw order params, WITHOUT
+ * signing or submitting. Needs no wallet — a safe rehearsal of a testnet order
+ * that verifies the whole write path up to (but not including) the signature.
+ */
+export async function previewOrder(exchange: SomniaMarkets, params: AnyRec): Promise<AnyRec> {
+  const { marketId, side, price, size } = validateOrderInput(params);
+  const row = await getMarketRowOrThrow(exchange, marketId);
+  const pool = String(row.poolAddress ?? "");
+  const onchain = (await exchange.client.getMarketOnchain(marketId as `0x${string}`)) as unknown as AnyRec;
+  const status = onchainStatusStr(onchain.status) ?? "Unknown";
+  return {
+    source: "LIVE_DREAMDEX",
+    wouldSubmit: status === "Trading" && pool !== "",
+    dryRun: true,
+    marketId: marketId.toLowerCase(),
+    pool,
+    status,
+    side,
+    binarySide: side === "UP" ? "BUY_YES" : "BUY_NO",
+    priceHuman: price,
+    priceRaw: String(BigInt(Math.round(price * RAW6))),
+    quantityHuman: size,
+    quantityRaw: String(BigInt(Math.round(size * RAW6))),
+    note: status === "Trading" ? "params valid; not signed/submitted (dry run)" : `market status is ${status}, not Trading`,
+  };
+}
+
+/**
+ * Submit a Shannon Testnet order via the low-level trader. Re-reads on-chain
+ * status immediately before signing and refuses anything but a TRADING market.
+ * Never called in paper mode.
+ */
+export async function placeOrder(exchange: SomniaMarkets, env: BridgeEnv, params: AnyRec): Promise<AnyRec> {
+  const { marketId, side, price, size } = validateOrderInput(params);
   // Transaction safety: validate current on-chain status right before signing,
   // and resolve the market's CURRENT pool (pools are recycled) from marketId.
   const row = await getMarketRowOrThrow(exchange, marketId);

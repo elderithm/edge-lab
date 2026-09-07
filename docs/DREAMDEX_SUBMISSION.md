@@ -81,9 +81,17 @@ edge-lab dreamdex execute <marketId> --size 5 --yes
 
 - **Network:** Somnia Shannon Testnet (chainId 50312); mainnet (5031) disabled by default.
 - **DreamDEX SDK version:** `@somnia-chain/markets-sdk@0.29.0`.
-- **Supported market types:** BTC and ETH short-window (15m / 1h) binary Event Contracts.
-- **Working testnet URL / demo video:** _add before submitting_ (indexer URL is deployment-specific and supplied via `.env`).
-- **Repository:** this repo (`polymarket-edge-lab`), DreamDEX code under `edge_lab/core`, `edge_lab/venues/dreamdex`, `edge_lab/strategies`, `dreamdex-bridge/`.
+- **Testnet indexer:** `https://dev.smk.somnia.host/v1/graphql` (from the markets-sdk README).
+- **Supported market types:** BTC and ETH binary Up/Down Event Contracts across
+  whatever rolling windows the venue lists (e.g. 1m / 5m / 1h / 4h / 24h).
+- **Demo:** `docs/DREAMDEX_DEMO.md`. UI: local dashboard at `http://127.0.0.1:8787`
+  via `edge-lab dreamdex dashboard` (read-only decision-support; execution stays in
+  the CLI behind explicit confirmation).
+- **Demo video:** _record before submitting_ using `docs/DREAMDEX_DEMO.md`.
+- **Repository / PR:** `github.com/elderithm/polymarket-edge-lab`, branch
+  `hackathon/dreamdex-2026` (PR #1). DreamDEX code under `edge_lab/core`,
+  `edge_lab/venues/dreamdex`, `edge_lab/strategies`, `edge_lab/dashboard`,
+  `dreamdex-bridge/`.
 
 ## Known limitations
 

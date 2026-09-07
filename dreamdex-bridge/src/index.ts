@@ -9,7 +9,7 @@
 import { SomniaMarketsError } from "@somnia-chain/markets-sdk";
 import { BridgeError, readEnv } from "./env.ts";
 import { buildExchange } from "./sdk.ts";
-import { discover, market, orderbook, placeOrder, price } from "./commands.ts";
+import { discover, market, orderbook, placeOrder, previewOrder, price } from "./commands.ts";
 
 type AnyRec = Record<string, unknown>;
 
@@ -50,6 +50,9 @@ async function main(): Promise<void> {
     case "price":
       result = await price(buildExchange(env), params);
       break;
+    case "preview-order":
+      result = await previewOrder(buildExchange(env), params); // no signer
+      break;
     case "place-order":
       result = await placeOrder(buildExchange(env, { needSigner: true }), env, params);
       break;
@@ -59,7 +62,7 @@ async function main(): Promise<void> {
     default:
       throw new BridgeError(
         "CONFIG_ERROR",
-        `unknown command '${cmd}' (discover|market|orderbook|price|place-order|health)`,
+        `unknown command '${cmd}' (discover|market|orderbook|price|preview-order|place-order|health)`,
       );
   }
   emit(result, 0);

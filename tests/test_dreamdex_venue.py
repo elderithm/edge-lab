@@ -134,6 +134,17 @@ def test_testnet_place_order_calls_bridge():
     assert bridge.calls[0][1]["side"] == "UP"
 
 
+def test_preview_order_builds_params_without_signing():
+    bridge = FakeBridge(
+        {"preview-order": {"wouldSubmit": True, "status": "Trading", "binarySide": "BUY_YES", "priceRaw": "550000"}}
+    )
+    adapter = DreamdexAdapter(DreamdexConfig(), bridge=bridge)  # type: ignore[arg-type]
+    res = adapter.preview_order(OrderRequest("0xabc", Side.UP, D("5"), D("0.55")))
+    assert res["wouldSubmit"] is True
+    assert bridge.calls[0][0] == "preview-order"
+    assert bridge.calls[0][1]["side"] == "UP"  # no signer involved
+
+
 def test_bridge_error_propagates_typed():
     bridge = FakeBridge({"market": MarketNotTrading("[MARKET_NOT_TRADING] locked")})
     adapter = DreamdexAdapter(DreamdexConfig(), bridge=bridge)  # type: ignore[arg-type]

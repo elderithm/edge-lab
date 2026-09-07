@@ -251,6 +251,46 @@ def report(
 
 
 @dreamdex_app.command()
+def preview(
+    market_id: str = typer.Argument(...),
+    side: str | None = typer.Option(None, "--side", help="UP | DOWN (omit to derive from the live signal)."),
+    price: float | None = typer.Option(
+        None, "--price", help="Limit price [0,1] (omit to use the signal's executable price)."
+    ),
+    size: float = typer.Option(5.0, "--size"),
+    min_edge_bps: float | None = typer.Option(None, "--min-edge-bps"),
+    verbose: bool = typer.Option(False, "--verbose"),
+) -> None:
+    """Rehearse a testnet order (resolve pool + on-chain status + raw params) WITHOUT signing.
+
+    Needs no wallet. Pass --side/--price to rehearse a specific order on any live
+    market, or omit them to preview the order the signal would produce.
+    """
+    now = int(time.time())
+    config = DreamdexConfig.from_env()
+    engine = _risk_engine(min_edge_bps)
+    try:
+        adapter = DreamdexAdapter(config)
+        if side and price is not None:
+            req = OrderRequest(market_id, Side(side.upper()), Decimal(str(size)), Decimal(str(price)))
+        else:
+            sig = _signal_for(adapter, market_id, Decimal(str(size)), now, engine)
+            if not sig.risk.is_actionable or sig.risk.side is None or sig.risk.price is None:
+                raise EdgeLabError(
+                    f"no actionable signal ({sig.state.value}); pass explicit --side and --price to rehearse anyway"
+                )
+            req = OrderRequest(market_id, sig.risk.side, sig.risk.allowed_size, sig.risk.price)
+        result = adapter.preview_order(req)
+        _echo_json(result)
+        if result.get("wouldSubmit"):
+            typer.secho("Dry run OK — params valid, nothing signed or submitted.", fg=typer.colors.GREEN)
+        else:
+            typer.secho(f"Would NOT submit: {result.get('note')}", fg=typer.colors.YELLOW)
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc, verbose)
+
+
+@dreamdex_app.command()
 def execute(
     market_id: str = typer.Argument(...),
     size: float = typer.Option(10.0, "--size"),
