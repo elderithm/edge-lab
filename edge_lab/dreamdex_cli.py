@@ -334,12 +334,15 @@ def dashboard(
     source: str = typer.Option("live", "--source", help="live | fixture"),
     assets: str = typer.Option("BTC,ETH", "--assets"),
     size: float = typer.Option(5.0, "--size"),
+    cache_ttl: float = typer.Option(0.0, "--cache-ttl", help="Seconds to cache scan/inspect (0 = always fresh)."),
     verbose: bool = typer.Option(False, "--verbose"),
 ) -> None:
     """Serve the read-only DreamDEX Edge Lab dashboard (decision-support only)."""
     asset_tuple = tuple(a.strip().upper() for a in assets.split(",") if a.strip())
     try:
-        server = make_server(host, port, source=source, assets=asset_tuple, size=Decimal(str(size)))
+        server = make_server(
+            host, port, source=source, assets=asset_tuple, size=Decimal(str(size)), cache_ttl=cache_ttl
+        )
         label = "SIMULATED FIXTURE" if source == "fixture" else "LIVE Shannon testnet"
         typer.secho(f"DreamDEX Edge Lab dashboard [{label}] → http://{host}:{port}", fg=typer.colors.GREEN)
         typer.echo("Read-only decision-support. Execution stays in the CLI. Ctrl+C to stop.")

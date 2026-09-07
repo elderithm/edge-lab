@@ -18,3 +18,6 @@ dreamdex-bridge/node_modules/
 dreamdex-bridge/.env
 **/.env
 
+
+# demo video artifacts
+*.mp4
