@@ -25,6 +25,35 @@ quantitative model. For each BTC/ETH market the tool:
 5. emits an explicit, explainable signal, and
 6. lets the user paper-trade or submit a Shannon Testnet order after confirming.
 
+## Pipeline
+
+The probability comes from an explicit **quantitative model — no LLM, no news
+feed** — and the flow ends in **paper trading by default**; testnet execution is
+a manual, explicitly confirmed step, never an autonomous trading loop.
+
+```text
+DreamDEX markets   (live · official @somnia-chain/markets-sdk)
+      │  market data only: on-chain order book + price history + external spot feed
+      │  (no LLM, no news)
+      ▼
+Quantitative model   realized-volatility Gaussian log-return (no LLM)
+      │  P(Up) = Φ( ln(current / opening) / (σ·√T) )   + a separate confidence
+      ▼
+Estimated probability   ──vs──   DreamDEX implied probability
+                                 (executable, size-aware: order-book walk, not the midpoint)
+      ▼
+Edge detection   executable edge after fee / slippage / liquidity buffers
+      ▼
+Risk engine   freshness · expiry · liquidity · slippage · exposure
+      ▼
+Explainable signal
+      ├──▶ paper trade       (default · no wallet)
+      └──▶ testnet execution (manual · --yes · Shannon Testnet · mainnet disabled by default)
+```
+
+It is **decision support, not an autonomous trading agent**: no unattended trade
+loop, no leverage, no uncapped sizing.
+
 ## Technology
 
 - Somnia (Shannon Testnet, chainId 50312)
