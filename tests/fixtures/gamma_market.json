@@ -1,0 +1,17 @@
+[
+  {
+    "id": "0000",
+    "slug": "example-binary-market",
+    "question": "Will the example event happen before 2027?",
+    "conditionId": "0xEXAMPLECONDITIONID",
+    "outcomes": "[\"Yes\", \"No\"]",
+    "clobTokenIds": "[\"1000000000000000000000000000000000000000000000000000000000000001\", \"1000000000000000000000000000000000000000000000000000000000000002\"]",
+    "active": true,
+    "closed": false,
+    "acceptingOrders": true,
+    "enableOrderBook": true,
+    "category": "Politics",
+    "tags": [{"label": "Politics"}, {"label": "World"}],
+    "endDate": "2027-01-01T00:00:00Z"
+  }
+]

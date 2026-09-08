@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.sqlite3
+.edge-lab/
+reports/
+*.egg-info/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.DS_Store
+
+# DreamDEX Node bridge
+dreamdex-bridge/node_modules/
+dreamdex-bridge/.env
+**/.env
+
+
+# demo video artifacts
+*.mp4
