@@ -1,8 +1,10 @@
-# Polymarket Edge Lab
+# Edge Lab
 
 A **read-only** research and paper-trading toolkit for testing whether publicly
-observable Polymarket trading patterns survive realistic execution assumptions —
-latency, price drift, fees, slippage, liquidity, and out-of-sample validation.
+observable prediction-market trading patterns survive realistic execution
+assumptions — latency, price drift, fees, slippage, liquidity, and out-of-sample
+validation. It covers **Polymarket** and, as an isolated venue layer, **DreamDEX
+Event Contracts on Somnia** (see the DreamDEX section below).
 
 The project exists to **falsify weak trading claims before risking capital**, not
 to promise returns. Every number it prints is an observation or a conservative
@@ -117,8 +119,8 @@ as P&L while positions are open.
 ## DreamDEX Event Contracts
 
 > **Added for the Somnia × DreamDEX Event Contracts Hackathon.** This is a new,
-> isolated venue layer — it did not previously exist in `polymarket-edge-lab`,
-> and the Polymarket functionality above is unchanged.
+> isolated venue layer — it did not previously exist in the base Edge Lab
+> toolkit, and the Polymarket functionality above is unchanged.
 
 **DreamDEX Edge Lab** estimates an independent probability for a DreamDEX Up/Down
 Event Contract, compares it against the *executable* on-chain price, and — after

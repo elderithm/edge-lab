@@ -1,7 +1,7 @@
 # DreamDEX Edge Lab — Architecture
 
 An explainable probability + edge analysis layer for **DreamDEX Event Contracts**
-(Somnia), added to `polymarket-edge-lab` as an **isolated venue**. The existing
+(Somnia), added to the base Edge Lab toolkit as an **isolated venue**. The existing
 Polymarket research toolkit is unchanged; DreamDEX lives behind its own adapter.
 
 ```

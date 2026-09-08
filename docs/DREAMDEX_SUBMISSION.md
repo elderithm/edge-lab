@@ -3,7 +3,7 @@
 ## Project
 
 **DreamDEX Edge Lab** — an explainable probability & edge analysis layer for
-DreamDEX Event Contracts, built on the existing `polymarket-edge-lab` core.
+DreamDEX Event Contracts, built on the existing Edge Lab core.
 
 ## Problem
 
@@ -117,7 +117,7 @@ edge-lab dreamdex execute <marketId> --size 5 --yes
   via `edge-lab dreamdex dashboard` (read-only decision-support; execution stays in
   the CLI behind explicit confirmation).
 - **Demo video:** _record before submitting_ using `docs/DREAMDEX_DEMO.md`.
-- **Repository / PR:** `github.com/elderithm/polymarket-edge-lab`, branch
+- **Repository / PR:** `github.com/elderithm/edge-lab`, branch
   `hackathon/dreamdex-2026` (PR #1). DreamDEX code under `edge_lab/core`,
   `edge_lab/venues/dreamdex`, `edge_lab/strategies`, `edge_lab/dashboard`,
   `dreamdex-bridge/`.
