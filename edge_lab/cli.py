@@ -42,6 +42,11 @@ from .dreamdex_cli import dreamdex_app  # noqa: E402
 
 app.add_typer(dreamdex_app, name="dreamdex")
 
+# DreamDEX Perps (Hideki testnet) — a separate, isolated command group.
+from .perps_cli import perps_app  # noqa: E402
+
+app.add_typer(perps_app, name="perps")
+
 
 def _version_callback(value: bool) -> None:
     if value:
