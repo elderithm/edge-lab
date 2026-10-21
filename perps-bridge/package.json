@@ -1,0 +1,30 @@
+{
+  "name": "dreamdex-perps-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thin DreamDEX Perps (Somnia Hideki Testnet) transport/execution bridge over @somnia-chain/markets-sdk. No analytic logic lives here.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "bridge": "node src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "keywords": [
+    "dreamdex",
+    "somnia",
+    "perps"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@somnia-chain/markets-sdk": "0.32.1",
+    "viem": "^2.56.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}
