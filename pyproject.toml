@@ -42,10 +42,11 @@ ignore = ["B008"]  # typer relies on function-call defaults (Option/Argument)
 [tool.ruff.lint.per-file-ignores]
 # Embedded HTML/CSS/JS dashboard template: long lines are natural.
 "edge_lab/dashboard/page.py" = ["E501"]
+"edge_lab/dashboard/perps_page.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["live: tests that hit the real Polymarket API (opt-in, not run in CI)"]
+markers = ["live: tests that hit real networks — Polymarket APIs or Somnia Hideki testnet (opt-in, not run in CI)"]
 addopts = "-m 'not live'"
 
 [tool.mypy]

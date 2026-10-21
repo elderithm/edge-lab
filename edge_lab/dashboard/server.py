@@ -24,6 +24,8 @@ from ..venues.dreamdex.adapter import DreamdexAdapter
 from ..venues.dreamdex.config import DreamdexConfig
 from ..venues.dreamdex.fixtures import FixtureVenue
 from .page import PAGE_HTML
+from .perps_api import PerpsApi
+from .perps_page import PERPS_PAGE_HTML
 from .service import scan_signals
 
 # Process-wide TTL cache so a slow live scan is fetched once and reused (e.g.
@@ -44,6 +46,7 @@ class _Handler(BaseHTTPRequestHandler):
     assets: tuple[str, ...] = ("BTC", "ETH")
     size: Decimal = Decimal("5")
     cache_ttl: float = 0.0  # 0 = always fetch fresh
+    perps_source: str = "live"
 
     def log_message(self, *_a: Any) -> None:  # quiet
         pass
@@ -78,6 +81,15 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             if path in ("/", "/index.html"):
                 self._send(200, PAGE_HTML.encode("utf-8"), "text/html; charset=utf-8")
+            elif path == "/perps":
+                self._send(200, PERPS_PAGE_HTML.encode("utf-8"), "text/html; charset=utf-8")
+            elif path.startswith("/api/perps/"):
+                api = PerpsApi(self.perps_source)
+                key = f"{path}?{parsed.query}"
+                cacheable = path in ("/api/perps/scan", "/api/perps/inspect")
+                self._json(
+                    200, self._cached(key, lambda: api.handle(path, query)) if cacheable else api.handle(path, query)
+                )
             elif path == "/api/health":
                 self._json(200, {"ok": True, "source": self.source})
             elif path == "/api/scan":
@@ -132,9 +144,17 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 def make_server(
-    host: str, port: int, *, source: str, assets: tuple[str, ...], size: Decimal, cache_ttl: float = 0.0
+    host: str,
+    port: int,
+    *,
+    source: str,
+    assets: tuple[str, ...],
+    size: Decimal,
+    cache_ttl: float = 0.0,
+    perps_source: str | None = None,
 ) -> ThreadingHTTPServer:
     _Handler.source = source
+    _Handler.perps_source = perps_source or source
     _Handler.assets = assets
     _Handler.size = size
     _Handler.cache_ttl = cache_ttl

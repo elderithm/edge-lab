@@ -57,6 +57,7 @@ PAGE_HTML = r"""<!doctype html>
 <header>
   <h1>DreamDEX Edge Lab</h1>
   <span class="src" id="srcBadge">…</span>
+  <a href="/perps" class="disc">Perps view →</a>
   <div class="spacer"></div>
   <span id="meta"></span>
   <button id="refresh">Refresh</button>
