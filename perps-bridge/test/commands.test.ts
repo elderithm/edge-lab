@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PerpMarket } from "@somnia-chain/markets-sdk";
 import { claimVoucher, notionalRaw, plain, precisionProblems } from "../src/commands.ts";
-import { BridgeError, assertWriteAllowed, type PerpsEnv } from "../src/env.ts";
+import { BridgeError, assertWriteAllowed, normalizePrivateKey, type PerpsEnv } from "../src/env.ts";
 
 const BTC = { tickSize: "100000000000000000", lotSize: "1000", minQuantity: "13000", baseDecimals: 8, quoteDecimals: 18 } as unknown as PerpMarket;
 
@@ -56,4 +56,13 @@ test("claim-voucher refuses without explicit confirmation before touching the SD
   const untouchable = new Proxy({}, { get: () => assert.fail("SDK must not be touched") }) as never;
   await assert.rejects(claimVoucher(untouchable, ENV, {}), (e: unknown) => e instanceof BridgeError && e.code === "NOT_CONFIRMED");
   await assert.rejects(claimVoucher(untouchable, ENV, { confirmed: "yes" }), /confirmed=true/);
+});
+
+test("private key: bare MetaMask export and whitespace are accepted; bad input never echoes the value", () => {
+  const k = "ab".repeat(32);
+  assert.equal(normalizePrivateKey(k), "0x" + k);
+  assert.equal(normalizePrivateKey(`  0x${k.toUpperCase()}\n`), "0x" + k);
+  assert.equal(normalizePrivateKey(""), undefined);
+  assert.throws(() => normalizePrivateKey("zz" + k.slice(2)), (e: unknown) => e instanceof BridgeError && !e.message.includes(k.slice(2)));
+  assert.throws(() => normalizePrivateKey(k.slice(4)), /got 60 characters/);
 });

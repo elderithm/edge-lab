@@ -23,6 +23,24 @@ export interface PerpsEnv {
   maxOrderNotional: string; // human quote units, decimal string
 }
 
+/**
+ * Accept a key with or without the `0x` prefix (MetaMask exports it bare) and
+ * with surrounding whitespace. Anything that is not 32 bytes of hex fails with a
+ * message that never contains the value itself.
+ */
+export function normalizePrivateKey(raw: string | undefined): string | undefined {
+  const s = (raw ?? "").trim();
+  if (!s) return undefined;
+  const hex = s.startsWith("0x") || s.startsWith("0X") ? s.slice(2) : s;
+  if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
+    throw new BridgeError(
+      "CONFIG_ERROR",
+      `PERPS_PRIVATE_KEY must be 64 hex characters (optionally prefixed with 0x); got ${hex.length} characters`,
+    );
+  }
+  return `0x${hex.toLowerCase()}`;
+}
+
 export function readEnv(): PerpsEnv {
   return {
     network: (process.env.NETWORK ?? "").toLowerCase(),
@@ -31,7 +49,7 @@ export function readEnv(): PerpsEnv {
     rpcUrl: process.env.PERPS_RPC_URL || DEFAULT_RPC_URL,
     wsRpcUrl: process.env.PERPS_WS_RPC_URL || DEFAULT_WS_RPC_URL,
     account: process.env.PERPS_ACCOUNT || undefined,
-    privateKey: process.env.PERPS_PRIVATE_KEY || undefined,
+    privateKey: normalizePrivateKey(process.env.PERPS_PRIVATE_KEY),
     maxOrderNotional: process.env.PERPS_MAX_ORDER_NOTIONAL || "100",
   };
 }
