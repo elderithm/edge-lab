@@ -3,8 +3,8 @@
 A **read-only** research and paper-trading toolkit for testing whether publicly
 observable prediction-market trading patterns survive realistic execution
 assumptions — latency, price drift, fees, slippage, liquidity, and out-of-sample
-validation. It covers **Polymarket** and, as an isolated venue layer, **DreamDEX
-Event Contracts on Somnia** (see the DreamDEX section below).
+validation. It covers **Polymarket** and, as isolated venue layers, **DreamDEX
+Event Contracts** and **DreamDEX Perps** on Somnia (see the DreamDEX sections below).
 
 The project exists to **falsify weak trading claims before risking capital**, not
 to promise returns. Every number it prints is an observation or a conservative
@@ -183,6 +183,39 @@ edge-lab dreamdex execute <marketId> --size 5 --yes
 ```
 
 See `docs/DREAMDEX_ARCHITECTURE.md` and `docs/DREAMDEX_SUBMISSION.md`.
+
+## DreamDEX Perps (Somnia Hideki Testnet)
+
+**DreamDEX Perps Edge Lab** — explainable perpetual-futures intelligence and
+risk-aware execution on Somnia Hideki Testnet (chain id 50383), through the
+official `@somnia-chain/markets-sdk` in its own isolated bridge (`perps-bridge/`,
+SDK 0.32.1). Event Contracts keep their own network, bridge and SDK version.
+
+It reports **observed** conditions (funding normalized from the on-chain window,
+mark-vs-index basis, spread, depth, realized volatility or `INSUFFICIENT_DATA`),
+**estimated execution cost** from a size-aware book walk, and **risk** (margin,
+effective leverage, liquidation distance, the protocol's own max order size).
+Strategy edge is always `NOT_ESTIMATED` — there is no predictive model. Each
+market gets one category from published thresholds. Effective leverage is
+hard-capped at 1x; paper trading is the default; testnet orders need
+`NETWORK=hideki-testnet`, `TRADING_MODE=testnet`, a dedicated `PERPS_PRIVATE_KEY`,
+every risk check, and `--yes`, and are reconciled from the receipt and fills.
+
+```bash
+(cd perps-bridge && npm ci)
+edge-lab perps markets                                  # live markets + per-market precision
+edge-lab perps scan                                     # ranked Market Opportunity Assessment
+edge-lab perps inspect BTC                              # funding, basis, liquidity, vol, cost, risk
+edge-lab perps preview BTC --side long --size 0.001     # unsigned; add --account 0x… for official sizing
+edge-lab perps paper-trade BTC --side long --size 0.001 # simulated fill from the live book
+edge-lab perps report                                   # paper P&L + testnet order evidence
+edge-lab perps dashboard                                # http://127.0.0.1:8787/perps
+edge-lab perps scan --source fixture                    # offline, clearly SIMULATED
+edge-lab perps execute BTC --side long --size 0.00013 --yes   # Hideki testnet only, see runbook
+```
+
+See `docs/PERPS_ARCHITECTURE.md`, `docs/PERPS_TESTNET_RUNBOOK.md`,
+`docs/PERPS_DEVELOPMENT_HISTORY.md` and `docs/PERPS_SUBMISSION.md`.
 
 ## Architecture
 
