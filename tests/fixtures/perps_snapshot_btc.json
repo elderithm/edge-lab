@@ -1,0 +1,346 @@
+{
+ "pool": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+ "capturedAt": 1792597369,
+ "market": {
+  "id": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+  "poolAddress": "0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0",
+  "lastPrice": "84594400000000000000000",
+  "lastTradeAt": "1792597367",
+  "cumulativeBaseVolume": "624604391000",
+  "cumulativeQuoteVolume": "513856136385890000000000000",
+  "tradeCount": "430282",
+  "baseDecimals": 8,
+  "quoteDecimals": 18,
+  "createdAtTimestamp": "1789666700",
+  "createdAtBlock": "202512",
+  "marketType": "PERP",
+  "baseToken": "0xa77fa353dac50de5c15676ac910c221a4d2bd6b5",
+  "quoteToken": "0xed7993a74dae1e6656b704a424dcd8711aaf4f72",
+  "baseSymbol": "BTC",
+  "quoteSymbol": "USDso",
+  "baseIsNative": false,
+  "tickSize": "100000000000000000",
+  "lotSize": "1000",
+  "minQuantity": "13000",
+  "marginBank": "0x478769e1177c0773c43a593dccc4ad15f15f1394",
+  "initialMarginBps": 500,
+  "stopRegistry": "0x52e2ccebaec9332672c247e9a90aa3d61fb615ef",
+  "markPrice": "84687054357766063000000",
+  "markPriceUpdatedAt": "1792595504",
+  "fundingRate": "1181962728951914",
+  "cumulativeFundingPerUnit": "2399696178364152876383072631615059000000",
+  "indexPrice": "84729008992382333500000",
+  "fundingUpdatedAt": "1792595504",
+  "fundingWindowSec": 28800,
+  "fundingIntervalSec": 3600,
+  "openInterest": "29421505000",
+  "openInterestUpdatedAt": "1792597367",
+  "chainId": 50383
+ },
+ "state": {
+  "markPrice": "84439191433989422500000",
+  "markPriceOk": true,
+  "indexPrice": "84484327925822120000000",
+  "indexUpdatedAt": "1792597369",
+  "fundingRate": "1181962728951914",
+  "cumulativeFundingPerUnit": "2399696178364152876383072631615059000000",
+  "projectedCumulativeFundingPerUnit": "2399696178364152876383072631615059000000",
+  "openInterest": "29421505000",
+  "fundingWindowSec": 28800,
+  "fundingIntervalSec": 3600,
+  "lastFundingUpdateAt": "1792595503",
+  "nextFundingAt": "1792599103",
+  "emaPremium": "1681962728951914",
+  "oracle": "0x20C790C53BFF771C2E93425EA24C11577CD9c8A0"
+ },
+ "risk": {
+  "initialMarginBps": "500",
+  "maintenanceMarginBps": "250",
+  "closeOutMarginBps": "125",
+  "maxOpenInterest": "49363090000",
+  "maxPositionSize": "10000000000",
+  "takerFeeBpsTimes1k": "0",
+  "makerFeeBpsTimes1k": "0",
+  "insuranceFundShareBps": "0"
+ },
+ "premium": {
+  "timeWeightedPremium": "1416946803624819",
+  "lastObservedPremium": "1298285209488663",
+  "accumulator": "2641307503550799530000000000",
+  "intervalStartNs": "1792595504000000000",
+  "observedAtNs": "1792597368000000000",
+  "validUntilNs": "1792597388000000000",
+  "armed": true
+ },
+ "book": {
+  "bids": [
+   {
+    "price": "84594200000000000000000",
+    "quantity": "1776000"
+   },
+   {
+    "price": "84593900000000000000000",
+    "quantity": "29606000"
+   },
+   {
+    "price": "84586000000000000000000",
+    "quantity": "53298000"
+   },
+   {
+    "price": "84550600000000000000000",
+    "quantity": "22200000"
+   },
+   {
+    "price": "84517600000000000000000",
+    "quantity": "5411000"
+   }
+  ],
+  "asks": [
+   {
+    "price": "84598700000000000000000",
+    "quantity": "14213000"
+   },
+   {
+    "price": "84603700000000000000000",
+    "quantity": "5329000"
+   },
+   {
+    "price": "84605000000000000000000",
+    "quantity": "3553000"
+   },
+   {
+    "price": "84606800000000000000000",
+    "quantity": "1184000"
+   },
+   {
+    "price": "84607300000000000000000",
+    "quantity": "1184000"
+   }
+  ],
+  "blockNumber": "29454085"
+ },
+ "candles": [
+  {
+   "bucketStart": "1792591500",
+   "openPrice": "83736800000000000000000",
+   "high": "83967600000000000000000",
+   "low": "83664400000000000000000",
+   "closePrice": "83959800000000000000000",
+   "baseVolume": "187920000",
+   "quoteVolume": "157362215172000000000000",
+   "tradeCount": 72,
+   "lastFillId": "29398383_26"
+  },
+  {
+   "bucketStart": "1792591800",
+   "openPrice": "83948600000000000000000",
+   "high": "84003300000000000000000",
+   "low": "83799300000000000000000",
+   "closePrice": "83962900000000000000000",
+   "baseVolume": "415811000",
+   "quoteVolume": "348674800323000000000000",
+   "tradeCount": 130,
+   "lastFillId": "29401397_68"
+  },
+  {
+   "bucketStart": "1792592100",
+   "openPrice": "83959300000000000000000",
+   "high": "83970500000000000000000",
+   "low": "83905400000000000000000",
+   "closePrice": "83944000000000000000000",
+   "baseVolume": "135548000",
+   "quoteVolume": "113781944050000000000000",
+   "tradeCount": 51,
+   "lastFillId": "29404322_90"
+  },
+  {
+   "bucketStart": "1792592400",
+   "openPrice": "83938500000000000000000",
+   "high": "84150200000000000000000",
+   "low": "83913000000000000000000",
+   "closePrice": "84150200000000000000000",
+   "baseVolume": "165869000",
+   "quoteVolume": "139419851998000000000000",
+   "tradeCount": 98,
+   "lastFillId": "29407369_4"
+  },
+  {
+   "bucketStart": "1792592700",
+   "openPrice": "84131800000000000000000",
+   "high": "84211600000000000000000",
+   "low": "83936700000000000000000",
+   "closePrice": "83955900000000000000000",
+   "baseVolume": "281682000",
+   "quoteVolume": "236942943188000000000000",
+   "tradeCount": 122,
+   "lastFillId": "29410380_99"
+  },
+  {
+   "bucketStart": "1792593000",
+   "openPrice": "83959700000000000000000",
+   "high": "84196800000000000000000",
+   "low": "83956700000000000000000",
+   "closePrice": "84177200000000000000000",
+   "baseVolume": "228200000",
+   "quoteVolume": "191857157256000000000000",
+   "tradeCount": 94,
+   "lastFillId": "29413389_19"
+  },
+  {
+   "bucketStart": "1792593300",
+   "openPrice": "84172900000000000000000",
+   "high": "84361000000000000000000",
+   "low": "84135000000000000000000",
+   "closePrice": "84172500000000000000000",
+   "baseVolume": "544678000",
+   "quoteVolume": "458848933982000000000000",
+   "tradeCount": 182,
+   "lastFillId": "29416424_31"
+  },
+  {
+   "bucketStart": "1792593600",
+   "openPrice": "84163000000000000000000",
+   "high": "84361000000000000000000",
+   "low": "84154000000000000000000",
+   "closePrice": "84288500000000000000000",
+   "baseVolume": "170865000",
+   "quoteVolume": "143989824320000000000000",
+   "tradeCount": 117,
+   "lastFillId": "29419344_41"
+  },
+  {
+   "bucketStart": "1792593900",
+   "openPrice": "84283000000000000000000",
+   "high": "84654000000000000000000",
+   "low": "84250800000000000000000",
+   "closePrice": "84514400000000000000000",
+   "baseVolume": "329440000",
+   "quoteVolume": "278174990766000000000000",
+   "tradeCount": 131,
+   "lastFillId": "29422338_132"
+  },
+  {
+   "bucketStart": "1792594200",
+   "openPrice": "84401600000000000000000",
+   "high": "84843300000000000000000",
+   "low": "84401600000000000000000",
+   "closePrice": "84627500000000000000000",
+   "baseVolume": "602664000",
+   "quoteVolume": "510246773363000000000000",
+   "tradeCount": 201,
+   "lastFillId": "29425402_36"
+  },
+  {
+   "bucketStart": "1792594500",
+   "openPrice": "84639700000000000000000",
+   "high": "84791800000000000000000",
+   "low": "84575400000000000000000",
+   "closePrice": "84636100000000000000000",
+   "baseVolume": "309389000",
+   "quoteVolume": "261872011957000000000000",
+   "tradeCount": 133,
+   "lastFillId": "29428365_17"
+  },
+  {
+   "bucketStart": "1792594800",
+   "openPrice": "84669700000000000000000",
+   "high": "84747100000000000000000",
+   "low": "84516000000000000000000",
+   "closePrice": "84681600000000000000000",
+   "baseVolume": "220130000",
+   "quoteVolume": "186232857172000000000000",
+   "tradeCount": 118,
+   "lastFillId": "29431392_72"
+  },
+  {
+   "bucketStart": "1792595100",
+   "openPrice": "84587600000000000000000",
+   "high": "84854000000000000000000",
+   "low": "84536000000000000000000",
+   "closePrice": "84823900000000000000000",
+   "baseVolume": "165668000",
+   "quoteVolume": "140344431366000000000000",
+   "tradeCount": 59,
+   "lastFillId": "29434296_51"
+  },
+  {
+   "bucketStart": "1792595400",
+   "openPrice": "84824300000000000000000",
+   "high": "84948100000000000000000",
+   "low": "84744400000000000000000",
+   "closePrice": "84852500000000000000000",
+   "baseVolume": "221116000",
+   "quoteVolume": "187633428745000000000000",
+   "tradeCount": 83,
+   "lastFillId": "29437144_14"
+  },
+  {
+   "bucketStart": "1792595700",
+   "openPrice": "84796800000000000000000",
+   "high": "84802500000000000000000",
+   "low": "84462200000000000000000",
+   "closePrice": "84462200000000000000000",
+   "baseVolume": "138866000",
+   "quoteVolume": "117489085159000000000000",
+   "tradeCount": 76,
+   "lastFillId": "29440370_47"
+  },
+  {
+   "bucketStart": "1792596000",
+   "openPrice": "84453400000000000000000",
+   "high": "84598300000000000000000",
+   "low": "84453300000000000000000",
+   "closePrice": "84596000000000000000000",
+   "baseVolume": "695464000",
+   "quoteVolume": "587875032349000000000000",
+   "tradeCount": 246,
+   "lastFillId": "29443369_43"
+  },
+  {
+   "bucketStart": "1792596300",
+   "openPrice": "84605200000000000000000",
+   "high": "84692000000000000000000",
+   "low": "84475900000000000000000",
+   "closePrice": "84479700000000000000000",
+   "baseVolume": "306628000",
+   "quoteVolume": "259408786575000000000000",
+   "tradeCount": 117,
+   "lastFillId": "29446240_8"
+  },
+  {
+   "bucketStart": "1792596600",
+   "openPrice": "84464500000000000000000",
+   "high": "84704700000000000000000",
+   "low": "84464500000000000000000",
+   "closePrice": "84658000000000000000000",
+   "baseVolume": "195005000",
+   "quoteVolume": "164968971997000000000000",
+   "tradeCount": 74,
+   "lastFillId": "29449388_128"
+  },
+  {
+   "bucketStart": "1792596900",
+   "openPrice": "84658000000000000000000",
+   "high": "84705700000000000000000",
+   "low": "84545600000000000000000",
+   "closePrice": "84705700000000000000000",
+   "baseVolume": "370188000",
+   "quoteVolume": "313321361188000000000000",
+   "tradeCount": 127,
+   "lastFillId": "29452348_10"
+  },
+  {
+   "bucketStart": "1792597200",
+   "openPrice": "84714800000000000000000",
+   "high": "84735500000000000000000",
+   "low": "84586100000000000000000",
+   "closePrice": "84594400000000000000000",
+   "baseVolume": "393515000",
+   "quoteVolume": "333095643937000000000000",
+   "tradeCount": 88,
+   "lastFillId": "29454069_47"
+  }
+ ],
+ "candleIntervalSeconds": 300,
+ "_comment": "Captured from a live Somnia Hideki testnet read (perps-bridge snapshot) on 2026-10-22 for mapping tests. Raw SDK integers as strings."
+}
