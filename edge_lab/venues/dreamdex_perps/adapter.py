@@ -108,3 +108,12 @@ class PerpsAdapter:
                 "riskApproved": True,
             },
         )
+
+    def claim_voucher(self, *, confirmed: bool) -> dict[str, Any]:
+        """Claim the signer's one-time paper-USDso testnet credit (explicit confirmation only)."""
+        if confirmed is not True:
+            raise PerpsWriteRefused("claim_voucher requires explicit confirmation")
+        blockers = self.config.write_blockers()
+        if blockers:
+            raise PerpsWriteRefused("testnet execution not enabled: " + "; ".join(blockers))
+        return self.bridge.invoke("claim-voucher", {"confirmed": True})

@@ -11,6 +11,7 @@ import { buildMarkets } from "./sdk.ts";
 import {
   account,
   candles,
+  claimVoucher,
   market,
   markets,
   orderbook,
@@ -88,13 +89,16 @@ async function main(): Promise<void> {
     case "signer":
       result = signer(env);
       break;
+    case "claim-voucher":
+      result = await claimVoucher(buildMarkets(env, { needSigner: true }), env, params);
+      break;
     case "receipt":
       result = await receipt(env, params);
       break;
     default:
       throw new BridgeError(
         "CONFIG_ERROR",
-        `unknown command '${cmd}' (health|markets|market|orderbook|candles|account|position|preview-order|place-order|receipt|snapshot|signer)`,
+        `unknown command '${cmd}' (health|markets|market|orderbook|candles|account|position|preview-order|place-order|claim-voucher|receipt|snapshot|signer)`,
       );
   }
   emit(result, 0);

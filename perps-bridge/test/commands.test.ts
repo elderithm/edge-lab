@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PerpMarket } from "@somnia-chain/markets-sdk";
-import { notionalRaw, plain, precisionProblems } from "../src/commands.ts";
+import { claimVoucher, notionalRaw, plain, precisionProblems } from "../src/commands.ts";
 import { BridgeError, assertWriteAllowed, type PerpsEnv } from "../src/env.ts";
 
 const BTC = { tickSize: "100000000000000000", lotSize: "1000", minQuantity: "13000", baseDecimals: 8, quoteDecimals: 18 } as unknown as PerpMarket;
@@ -50,4 +50,10 @@ test("write gate: mode, network and signer", () => {
   assert.equal(code({ ...ENV, network: "testnet" }), "WRONG_NETWORK");
   assert.equal(code({ ...ENV, network: "mainnet" }), "WRONG_NETWORK");
   assert.equal(code({ ...ENV, privateKey: undefined }), "SIGNER_REQUIRED");
+});
+
+test("claim-voucher refuses without explicit confirmation before touching the SDK", async () => {
+  const untouchable = new Proxy({}, { get: () => assert.fail("SDK must not be touched") }) as never;
+  await assert.rejects(claimVoucher(untouchable, ENV, {}), (e: unknown) => e instanceof BridgeError && e.code === "NOT_CONFIRMED");
+  await assert.rejects(claimVoucher(untouchable, ENV, { confirmed: "yes" }), /confirmed=true/);
 });

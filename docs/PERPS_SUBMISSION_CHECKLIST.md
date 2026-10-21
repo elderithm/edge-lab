@@ -27,7 +27,7 @@ evidence are marked VERIFIED.
 
 ### VERIFIED (evidence in this repo / this session)
 
-- [x] Existing functionality operational — offline suite 256 passed (183 pre-existing + 73 new); ruff, format, mypy clean; Event Contracts bridge `tsc` clean.
+- [x] Existing functionality operational — offline suite 258 passed (183 pre-existing + 75 new); ruff, format, mypy clean; Event Contracts bridge `tsc` clean.
 - [x] Perps adapter reads actual Hideki markets — 21 markets via `listPerpMarkets` (live `pytest -m live`: 3 passed).
 - [x] Market details normalized and visible — `edge-lab perps markets` / `inspect`, per-market decimals 6–24.
 - [x] Funding, basis, spread, depth computed from live data — `scan` / dashboard on live Hideki.
@@ -37,13 +37,14 @@ evidence are marked VERIFIED.
 - [x] Perps dashboard works locally — `/perps` live (screenshots taken in-session), fixture endpoints tested.
 - [x] Testnet execution isolated behind permission gates — CLI/bridge/adapter gate tests; forged/expired approvals never reach the bridge.
 - [x] Order preview validates size and margin — live official `getMaxPerpOrderSize` / margin / liquidation preview for a public address.
-- [x] Bridge unit tests — `npm run typecheck`, `npm test` (4 pass).
+- [x] Bridge unit tests — `npm run typecheck`, `npm test` (5 pass).
 - [x] Submission documentation exists — PERPS_ARCHITECTURE / DEVELOPMENT_HISTORY / TESTNET_RUNBOOK / DEMO / SUBMISSION / this file.
 - [x] Development history separates previous and new work — PERPS_DEVELOPMENT_HISTORY.md.
 - [x] Demo recording instructions ready — PERPS_DEMO.md.
 
 ### IMPLEMENTED BUT NOT LIVE-VERIFIED
 
+- [ ] Signed voucher claim (`edge-lab perps claim-voucher --yes`, bridge `claim-voucher` → `claimPerpVoucher`).
 - [ ] Signed testnet order submission (`edge-lab perps execute … --yes`, bridge `place-order` → `placePerpOrder`).
 - [ ] Receipt retrieval for a real transaction (`edge-lab perps receipt`) — the command works against the RPC but has no Edge Lab transaction to read yet.
 - [ ] Fill reconciliation and post-trade position read on a real order (unit-tested with synthetic results only).
@@ -53,7 +54,8 @@ evidence are marked VERIFIED.
 ### REQUIRES USER ACTION
 
 - [ ] Create a dedicated throwaway Hideki testnet key; store it in 1Password and export `PERPS_PRIVATE_KEY` (never paste it into chat).
-- [ ] Fund it: Perps Arena paper USDso → move to the Perps account; STT gas via the app's bot top-up (runbook §7).
+- [x] STT gas sent to the dedicated signer via Link a Bot (50 STT read from the Hideki RPC).
+- [ ] Claim the 1 000 paper-USDso credit for the signer: `edge-lab perps claim-voucher --yes` (runbook §7; eligibility read live: `eligible=true`).
 - [ ] Run `NETWORK=hideki-testnet TRADING_MODE=testnet edge-lab perps execute BTC --side long --size 0.00013 --yes`, then `edge-lab perps receipt <hash>`; paste the evidence into PERPS_SUBMISSION.md.
 - [ ] Record and upload the demo video (PERPS_DEMO.md); paste the URL.
 - [ ] Verify the DoraHacks conditions above.
@@ -63,5 +65,5 @@ evidence are marked VERIFIED.
 ### NOT COMPLETED (deliberately out of scope)
 
 - Predictive strategy model / expected-value estimates (no defensible model; reported as `NOT_ESTIMATED`).
-- Leverage above 1x, stop/TP-SL orders, voucher claiming, deposits/withdrawals from Edge Lab.
+- Leverage above 1x, stop/TP-SL orders, deposits/withdrawals from Edge Lab. (The one-time testnet credit can be claimed with `claim-voucher`; no real funds move.)
 - Mainnet perps (none exist; no mainnet mode is implemented).

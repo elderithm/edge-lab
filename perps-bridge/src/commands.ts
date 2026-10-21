@@ -268,6 +268,55 @@ export async function placeOrder(m: SomniaMarkets, env: PerpsEnv, params: AnyRec
   };
 }
 
+/**
+ * Claim the signer's one-time paper-USDso credit (testnet voucher) into its own
+ * Perps account. Gated like an order (`buildMarkets(..., { needSigner })`), plus an
+ * explicit `confirmed=true`, a chain-id check and a fresh eligibility read right
+ * before signing. Nothing but the protocol's own credit moves.
+ */
+export async function claimVoucher(m: SomniaMarkets, env: PerpsEnv, params: AnyRec): Promise<AnyRec> {
+  if (params.confirmed !== true) {
+    throw new BridgeError("NOT_CONFIRMED", "claim-voucher requires an explicit confirmed=true");
+  }
+  const pub = buildPublicClient(env);
+  const chainId = await pub.getChainId();
+  if (chainId !== HIDEKI_CHAIN_ID) {
+    throw new BridgeError("WRONG_CHAIN", `RPC chain id ${chainId} != Hideki ${HIDEKI_CHAIN_ID}`);
+  }
+  const signer = privateKeyToAccount(env.privateKey as Hex).address.toLowerCase() as Hex;
+  const rows = await m.client.listPerpMarkets({ limit: 50 });
+  if (rows.length === 0) throw new BridgeError("MARKET_NOT_FOUND", "no perp markets listed");
+  const bank = rows[0].marginBank;
+
+  const before = await m.client.getPerpVoucherEligibility(bank, signer);
+  if (!before.eligible) {
+    throw new BridgeError("VOUCHER_NOT_ELIGIBLE", `voucher not claimable for ${signer}: ${before.reason}`);
+  }
+  const equityBefore = await m.client.tryGetPerpAccountEquity(bank, signer);
+
+  const trader = m.client.createTrader({ privateKey: env.privateKey as Hex });
+  const result = await trader.claimPerpVoucher({ marginBank: bank, gas: ORDER_GAS });
+  const [equityAfter, after] = await Promise.all([
+    m.client.tryGetPerpAccountEquity(bank, signer),
+    m.client.getPerpVoucherEligibility(bank, signer).catch((e: unknown) => ({ error: String((e as Error)?.message) })),
+  ]);
+  const r = result.receipt;
+  return {
+    source: "LIVE_DREAMDEX_PERPS",
+    submitted: true,
+    chainId,
+    account: signer,
+    marginBank: bank,
+    grantAmount: before.grantAmount,
+    txHash: result.hash,
+    receipt: { status: r.status, blockNumber: r.blockNumber, gasUsed: r.gasUsed, transactionHash: r.transactionHash },
+    equityBefore,
+    equityAfter,
+    eligibilityAfter: after,
+    capturedAt: now(),
+  };
+}
+
 /** Receipt by hash, for after-the-fact reconciliation. */
 export async function receipt(env: PerpsEnv, params: AnyRec): Promise<AnyRec> {
   const hash = String(params.hash ?? "");

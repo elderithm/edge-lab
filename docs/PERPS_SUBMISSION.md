@@ -76,7 +76,7 @@ Official SDK methods used: `listPerpMarkets`, `getPerpMarket`,
 `getPerpFundingPremium`, `getSpotOrderBook` (perp pool book), `getCandles`,
 `getMaxPerpOrderSize`, `previewPerpOrderMargin`, `previewPerpLiquidationPrice`,
 `tryGetPerpAccountEquity`, `getPerpVoucherEligibility`, `getPerpPosition`,
-`createTrader().placePerpOrder`; chain definition `hidekiTestnet` and
+`createTrader().placePerpOrder`, `createTrader().claimPerpVoucher`; chain definition `hidekiTestnet` and
 `SOMNIA_HIDEKI_TESTNET_ADDRESSES`. Handled hazards: per-market base decimals
 (6–24 live), 18-decimal prices, tick/lot/min alignment, `markPriceOk`,
 `limitedBy` (collateral / voucherBlocked / maxPositionSize), isolation,
@@ -113,9 +113,9 @@ Testnet execution: `docs/PERPS_TESTNET_RUNBOOK.md`.
 
 ### Testing evidence
 
-- Offline suite: 256 tests pass (183 pre-existing Polymarket / Event Contracts +
-  73 new Perps), ruff, ruff-format and mypy clean.
-- Bridge: TypeScript typecheck and 4 `node:test` unit tests pass.
+- Offline suite: 258 tests pass (183 pre-existing Polymarket / Event Contracts +
+  75 new Perps), ruff, ruff-format and mypy clean.
+- Bridge: TypeScript typecheck and 5 `node:test` unit tests pass.
 - Live Hideki (opt-in `pytest -m live`): market discovery, snapshot + assessment,
   and official unsigned preview / `getMaxPerpOrderSize` pass against the live
   testnet.

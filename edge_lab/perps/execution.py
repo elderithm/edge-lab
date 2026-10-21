@@ -113,3 +113,18 @@ def write_evidence(
         )
     )
     return path
+
+
+def write_voucher_evidence(evidence_dir: str | Path, result: dict[str, Any]) -> Path:
+    """Persist the voucher-claim bridge result (no secrets: the bridge never returns the key)."""
+    d = Path(evidence_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{int(time.time())}-voucher-{str(result.get('txHash') or 'nohash')[:18]}.json"
+    path.write_text(
+        json.dumps(
+            {"label": "LIVE TESTNET voucher claim evidence (Somnia Hideki, chain 50383)", "bridge_result": result},
+            indent=2,
+            default=str,
+        )
+    )
+    return path

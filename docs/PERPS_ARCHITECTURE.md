@@ -215,6 +215,12 @@ only analytically (protocol max leverage is displayed for information).
 9. Write an evidence JSON (`.edge-lab/perps-evidence/`) and a ledger row.
    `edge-lab perps receipt <hash>` re-reads the receipt independently.
 
+`edge-lab perps claim-voucher` uses the same write gate and `--yes` to claim the
+signer's one-time testnet paper-USDso credit (`claimPerpVoucher` against the
+MarginBank's credit granter). The bridge requires `confirmed=true`, checks chain
+id 50383 and re-reads eligibility right before signing; afterwards equity is
+re-read and an evidence JSON is written.
+
 Revert names from the docs are mapped to stable codes: `IOC_NO_FILL`,
 `INSUFFICIENT_COLLATERAL`, `ISOLATED_MARKET_BLOCKED`,
 `MAX_POSITION_SIZE_EXCEEDED`, `WS_REQUIRED` ("genesis check failed").

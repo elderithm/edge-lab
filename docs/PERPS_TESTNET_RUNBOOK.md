@@ -70,18 +70,27 @@ The dashboard previews but never submits.
 ## 7. Signed testnet execution — prerequisites (user action)
 
 1. **A dedicated, throwaway testnet key.** Never a key that holds real funds.
-   Do not paste it into chat or commit it. Recommended (org policy: 1Password):
+   Do not paste it into chat or commit it. Load it from a secret manager, e.g. 1Password:
    ```bash
-   export PERPS_PRIVATE_KEY="$(op read op://ClaudeCode-Personal/DreamDEX-Perps-Testnet/private_key)"
+   export PERPS_PRIVATE_KEY="$(op read op://<vault>/<item>/private_key)"
    ```
    Alternatively put it in `perps-bridge/.env` (gitignored) — see `.env.example`.
-2. **Test funds for that address** (from the DreamDEX Perps testnet docs):
-   - Sign in at `app.testnet.dreamdex.io/perps` and join **Perps Arena** to receive
-     1 000 paper USDso (one-time, only while the account has no positions/orders).
-   - Move USDso from Spot to the **Perps** account (`Perps ⇆ Spot`); perp orders
-     only use margin in the Perps account.
-   - Get **STT** for gas via the app's bot-wallet top-up (link the key's address as
-     a bot via "Link a Bot"). Linked bots can trade but cannot withdraw.
+2. **Test funds for that address** (from the DreamDEX Perps testnet docs).
+   Edge Lab trades the margin of the **signer's own address**, so fund that address:
+   - **STT for gas:** sign in at `app.testnet.dreamdex.io`, open **Link a Bot**,
+     enter the signer's *public* address and choose "Send … for gas" / "Top up".
+     Note: a linked bot can place orders against the *linked app wallet's* margin
+     (the bot kit's `OWNER_ADDRESS`); Edge Lab does not use that mode — it only
+     uses the link to send gas to the signer.
+   - **Paper USDso:** any address can claim a one-time 1 000 USDso Perps credit
+     while it holds no perp positions or orders. Claim it for the signer itself:
+     ```bash
+     export NETWORK=hideki-testnet TRADING_MODE=testnet
+     edge-lab perps claim-voucher          # shows signer, equity and eligibility; refuses without --yes
+     edge-lab perps claim-voucher --yes    # claimPerpVoucher → receipt → equity re-read → evidence JSON
+     ```
+     (Joining Perps Arena in the app credits the wallet you are signed in with,
+     which is not the signer unless you signed in with this same key.)
    - Paper USDso cannot open positions in 1000PEPE, LIT, PUMP, VVV, ZEC, ZRO
      (`limitedBy: voucherBlocked`). BTC, ETH, SOL are fine.
 3. **Verify read-only first:**
@@ -131,6 +140,7 @@ To close a test position, submit the opposite side for the same quantity.
 | `ISOLATED_MARKET_BLOCKED` | isolated account can only trade one market | use that market or a cross account |
 | `MAX_POSITION_SIZE_EXCEEDED` | per-account cap | reduce size |
 | `WS_REQUIRED` | WebSocket unreachable | check `PERPS_WS_RPC_URL` / network |
+| `VOUCHER_NOT_ELIGIBLE` (`alreadyClaimed`, `notFlat`, `mainFunded`, …) | the credit cannot be claimed by this address | see the reason; claim only once, while flat |
 
 ## 10. Tests
 

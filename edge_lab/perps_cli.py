@@ -18,7 +18,7 @@ import typer
 from .errors import EdgeLabError
 from .paper.perps_paper import DEFAULT_PATH, PerpsPaperDB
 from .perps.analytics import AssessmentThresholds, walk_book
-from .perps.execution import DEFAULT_EVIDENCE_DIR, submit, write_evidence
+from .perps.execution import DEFAULT_EVIDENCE_DIR, submit, write_evidence, write_voucher_evidence
 from .perps.risk import PerpsRiskDecision
 from .perps.service import build_preview, decide, live_account_context
 from .perps.service import inspect as inspect_market
@@ -497,6 +497,44 @@ def execute(
         color = typer.colors.GREEN if rec.status in ("FILLED", "PARTIALLY_FILLED", "RESTING") else typer.colors.RED
         typer.secho(f"TESTNET tx {rec.tx_hash}: receipt={rec.receipt_status} state={rec.status}", fg=color)
         typer.echo(f"  {rec.detail}; position after = {rec.position_after}")
+        typer.echo(f"  evidence: {path}")
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        _fail(exc, verbose)
+
+
+@perps_app.command("claim-voucher")
+def claim_voucher(
+    yes: bool = typer.Option(False, "--yes", help="Confirm the real Hideki TESTNET transaction."),
+    evidence_dir: str = typer.Option(DEFAULT_EVIDENCE_DIR, "--evidence-dir"),
+    verbose: bool = typer.Option(False, "--verbose"),
+) -> None:
+    """Claim the signer's one-time 1,000 paper-USDso Perps credit on Hideki TESTNET (needs --yes)."""
+    config = PerpsConfig.from_env()
+    try:
+        blockers = config.write_blockers()
+        if blockers:
+            raise EdgeLabError("testnet execution not enabled: " + "; ".join(blockers))
+        adapter = PerpsAdapter(config)
+        signer = adapter.signer_address()
+        acct = adapter.get_account(signer)
+        voucher = acct.voucher
+        typer.echo(f"Signer {signer}: equity={acct.equity} USDso, voucher={voucher}")
+        if voucher.get("eligible") is not True:
+            raise EdgeLabError(f"voucher not claimable: {voucher.get('reason') or voucher.get('error') or voucher}")
+        if not yes:
+            typer.secho("Refusing to submit without explicit --yes confirmation.", fg=typer.colors.YELLOW)
+            raise typer.Exit(1)
+        result = adapter.claim_voucher(confirmed=True)
+        path = write_voucher_evidence(evidence_dir, result)
+        status = (result.get("receipt") or {}).get("status")
+        color = typer.colors.GREEN if status == "success" else typer.colors.RED
+        typer.secho(f"TESTNET tx {result.get('txHash')}: receipt={status}", fg=color)
+        after = adapter.get_account(signer)
+        typer.echo(
+            f"  Perps equity {acct.equity} -> {after.equity} USDso (re-read from MarginBank {result.get('marginBank')})"
+        )
         typer.echo(f"  evidence: {path}")
     except typer.Exit:
         raise

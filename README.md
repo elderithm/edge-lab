@@ -211,6 +211,7 @@ edge-lab perps paper-trade BTC --side long --size 0.001 # simulated fill from th
 edge-lab perps report                                   # paper P&L + testnet order evidence
 edge-lab perps dashboard                                # http://127.0.0.1:8787/perps
 edge-lab perps scan --source fixture                    # offline, clearly SIMULATED
+edge-lab perps claim-voucher --yes                      # one-time testnet paper-USDso credit for the signer
 edge-lab perps execute BTC --side long --size 0.00013 --yes   # Hideki testnet only, see runbook
 ```
 

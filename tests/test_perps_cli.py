@@ -102,9 +102,11 @@ def test_execute_wrong_network_refused(monkeypatch, no_writes):
 
 
 def test_execute_risk_block_and_missing_yes_never_submit(monkeypatch, no_writes):
+    import time
+
     from perps_helpers import snapshot
 
-    snap = snapshot()
+    snap = snapshot(captured_at=int(time.time()))  # execute checks freshness against the real clock
     monkeypatch.setenv("TRADING_MODE", "testnet")
     monkeypatch.setenv("NETWORK", "hideki-testnet")
     monkeypatch.setenv("PERPS_PRIVATE_KEY", "0x" + "1" * 64)
@@ -161,3 +163,50 @@ def test_dashboard_perps_view(server, monkeypatch, tmp_path):
     paper = json.loads(_get(server, "/api/perps/paper"))
     assert paper["positions"] == [] and paper["testnet_orders"] == []
     assert json.loads(_get(server, "/api/perps/execute")).get("error") == "not found"  # no execution endpoint
+
+
+def test_claim_voucher_gated_and_requires_yes(monkeypatch):
+    calls: list[object] = []
+    monkeypatch.setattr(PerpsAdapter, "claim_voucher", lambda self, **k: calls.append(k) or {})
+    for k in ("TRADING_MODE", "NETWORK", "PERPS_PRIVATE_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(PerpsAdapter, "signer_address", lambda self: (_ for _ in ()).throw(AssertionError("no read")))
+    r = runner.invoke(app, ["perps", "claim-voucher", "--yes"])
+    assert r.exit_code == 1 and "not enabled" in r.output
+
+    monkeypatch.setenv("TRADING_MODE", "testnet")
+    monkeypatch.setenv("NETWORK", "hideki-testnet")
+    monkeypatch.setenv("PERPS_PRIVATE_KEY", "0x" + "1" * 64)
+    monkeypatch.setattr(PerpsAdapter, "signer_address", lambda self: "0x" + "9" * 40)
+
+    class Acct:
+        equity = Decimal(0)
+        voucher: dict = {"eligible": True, "grantAmount": "1000000000000000000000"}
+
+    monkeypatch.setattr(PerpsAdapter, "get_account", lambda self, a=None: Acct())
+    r = runner.invoke(app, ["perps", "claim-voucher"])
+    assert r.exit_code == 1 and "--yes" in r.output
+
+    Acct.voucher = {"eligible": False, "reason": "alreadyClaimed"}
+    r = runner.invoke(app, ["perps", "claim-voucher", "--yes"])
+    assert r.exit_code == 1 and "alreadyClaimed" in r.output
+    assert calls == []
+
+
+def test_adapter_claim_voucher_refuses_without_confirmation(monkeypatch):
+    from edge_lab.venues.dreamdex_perps.config import PerpsConfig
+    from edge_lab.venues.dreamdex_perps.errors import PerpsWriteRefused
+
+    class Bridge:
+        def invoke(self, *a, **k):  # pragma: no cover - must never run
+            raise AssertionError("bridge must not be reached")
+
+    monkeypatch.setenv("TRADING_MODE", "testnet")
+    monkeypatch.setenv("NETWORK", "hideki-testnet")
+    monkeypatch.setenv("PERPS_PRIVATE_KEY", "0x" + "1" * 64)
+    adapter = PerpsAdapter(PerpsConfig.from_env(), bridge=Bridge())
+    with pytest.raises(PerpsWriteRefused):
+        adapter.claim_voucher(confirmed=False)
+    monkeypatch.setenv("TRADING_MODE", "paper")
+    with pytest.raises(PerpsWriteRefused):
+        PerpsAdapter(PerpsConfig.from_env(), bridge=Bridge()).claim_voucher(confirmed=True)
