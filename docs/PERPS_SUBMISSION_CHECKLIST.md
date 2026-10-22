@@ -41,22 +41,23 @@ evidence are marked VERIFIED.
 - [x] Submission documentation exists — PERPS_ARCHITECTURE / DEVELOPMENT_HISTORY / TESTNET_RUNBOOK / DEMO / SUBMISSION / this file.
 - [x] Development history separates previous and new work — PERPS_DEVELOPMENT_HISTORY.md.
 - [x] Demo recording instructions ready — PERPS_DEMO.md.
+- [x] Signed testnet order — `execute BTC --side long --size 0.00013 --yes`, tx `0x57fe64c4…aa47`, block 30162072, receipt `success`.
+- [x] Receipt re-read independently — `edge-lab perps receipt` (chain 50383, from the signer, to the BTC-PERP pool).
+- [x] Fill reconciliation and post-trade position — 1 fill of 0.00013 at 81970.6 → `FILLED`; MarginBank position 0.00013 long.
+- [x] Live account equity/positions for a funded account — equity ≈ 99.97 USDso with the open BTC position.
 
 ### IMPLEMENTED BUT NOT LIVE-VERIFIED
 
-- [ ] Signed voucher claim (`edge-lab perps claim-voucher --yes`, bridge `claim-voucher` → `claimPerpVoucher`).
-- [ ] Signed testnet order submission (`edge-lab perps execute … --yes`, bridge `place-order` → `placePerpOrder`).
-- [ ] Receipt retrieval for a real transaction (`edge-lab perps receipt`) — the command works against the RPC but has no Edge Lab transaction to read yet.
-- [ ] Fill reconciliation and post-trade position read on a real order (unit-tested with synthetic results only).
-- [ ] Live account equity/positions for a funded account (only an empty account was read).
+- [ ] Signed voucher claim (`edge-lab perps claim-voucher --yes`). Tried live: the distributor's `claim()` reverts with custom error `0x3e31dcc2` for every address simulated (including unrelated ones) although `getPerpVoucherEligibility` returns `eligible: true`. The Perps Arena credit in the app was used instead.
 - [ ] CI run on GitHub for the new `perps-bridge` job (not pushed yet).
 
 ### REQUIRES USER ACTION
 
 - [ ] Create a dedicated throwaway Hideki testnet key; store it in 1Password and export `PERPS_PRIVATE_KEY` (never paste it into chat).
 - [x] STT gas sent to the dedicated signer via Link a Bot (50 STT read from the Hideki RPC).
-- [ ] Claim the 1 000 paper-USDso credit for the signer: `edge-lab perps claim-voucher --yes` (runbook §7; eligibility read live: `eligible=true`).
-- [ ] Run `NETWORK=hideki-testnet TRADING_MODE=testnet edge-lab perps execute BTC --side long --size 0.00013 --yes`, then `edge-lab perps receipt <hash>`; paste the evidence into PERPS_SUBMISSION.md.
+- [x] Paper USDso: signed in to the app with the signer, registered for Perps Arena (100 USDso), moved into the Perps MarginBank.
+- [x] Signed order executed and evidence pasted into PERPS_SUBMISSION.md.
+- [ ] Optional: close the test position (`edge-lab perps execute BTC --side short --size 0.00013 --yes`).
 - [ ] Record and upload the demo video (PERPS_DEMO.md); paste the URL.
 - [ ] Verify the DoraHacks conditions above.
 - [ ] Authorize `git push` of `hackathon/dreamdex-perps-2026` (and a PR, if wanted).

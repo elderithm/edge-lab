@@ -1,7 +1,6 @@
 # DreamDEX Perps Edge Lab — DoraHacks Submission (ready to paste)
 
-> Fields marked ⟨…⟩ need a human: demo video URL, and transaction links only if a
-> signed testnet order has been verified (see PERPS_SUBMISSION_CHECKLIST.md).
+> Fields marked ⟨…⟩ need a human: the demo video URL (see PERPS_SUBMISSION_CHECKLIST.md).
 
 ## Project name
 
@@ -119,14 +118,13 @@ Testnet execution: `docs/PERPS_TESTNET_RUNBOOK.md`.
 - Live Hideki (opt-in `pytest -m live`): market discovery, snapshot + assessment,
   and official unsigned preview / `getMaxPerpOrderSize` pass against the live
   testnet.
+- Signed testnet order: one IOC order filled and reconciled end-to-end (see
+  Transaction evidence).
 - Risk bypass tests: forged, expired and paper-mode approvals, wrong network,
   missing `--yes`, and risk-blocked orders never reach the SDK write.
 
 ### Known limitations
 
-- ⟨Signed testnet execution: not yet verified end-to-end — requires a funded,
-  dedicated Hideki testnet wallet (see checklist). Replace this line with the
-  evidence once verified.⟩
 - No predictive model: Edge Lab reports observations and costs, not expected
   returns. `REVIEW` is not a trade recommendation.
 - Liquidation prices without an account are labelled estimates (single-position,
@@ -143,5 +141,23 @@ Testnet execution: `docs/PERPS_TESTNET_RUNBOOK.md`.
 
 ### Transaction evidence
 
-⟨Only if verified: tx hash, block number, receipt status, reconciled state, and
-the `edge-lab perps receipt <hash>` output. No public explorer exists for Hideki.⟩
+One signed Hideki-testnet order was submitted by `edge-lab perps execute` after
+every risk check passed, and verified independently afterwards:
+
+| Field | Value |
+|---|---|
+| Network | Somnia Hideki Testnet, chain id 50383 |
+| Command | `edge-lab perps execute BTC --side long --size 0.00013 --yes` (IOC, limit 82022.9) |
+| Tx hash | `0x57fe64c4d310adcdcf8e577be284dff088a55f1b10eb78672a92634af082aa47` |
+| Block | 30162072, receipt `success`, 8 logs |
+| From → to | dedicated testnet signer `0x74dab13fd6561090fbedc477f7d5de01cf96e501` → BTC-PERP pool `0x4181dd08e73bbcdd1ba3e615a18f6abd941b94c0` |
+| Order / fill | order id 6364126705429802276655; 1 fill, 0.00013 BTC at 81970.6 USDso (maker order 7415591117631246718766) |
+| Reconciled state | `FILLED`; MarginBank position re-read: 0.00013 BTC long, avg entry 81970.6 |
+
+Re-check with `edge-lab perps receipt 0x57fe64c4d310adcdcf8e577be284dff088a55f1b10eb78672a92634af082aa47`.
+Hideki has no public block explorer; the evidence is the RPC receipt, the decoded
+fill and the MarginBank position read.
+
+Collateral used: the wallet's Perps Arena paper USDso (100 USDso), moved from the
+wallet into the Perps MarginBank with the SDK's `depositMargin`. Edge Lab itself
+does not move collateral.

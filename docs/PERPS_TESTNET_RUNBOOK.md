@@ -89,8 +89,12 @@ The dashboard previews but never submits.
      edge-lab perps claim-voucher          # shows signer, equity and eligibility; refuses without --yes
      edge-lab perps claim-voucher --yes    # claimPerpVoucher → receipt → equity re-read → evidence JSON
      ```
-     (Joining Perps Arena in the app credits the wallet you are signed in with,
-     which is not the signer unless you signed in with this same key.)
+     Observed on 2026-10-22: the direct claim reverted on-chain (custom error
+     `0x3e31dcc2`) for every address tried, although eligibility read `true`.
+     What worked: sign in to the app **with the signer's own wallet** (e.g. the
+     key imported into MetaMask), register for **Perps Arena** (paper USDso is
+     airdropped to the wallet), then move it into the Perps account. The Arena's
+     "hold 10 SOMI on mainnet" item only gates prizes, not the paper funds.
    - Paper USDso cannot open positions in 1000PEPE, LIT, PUMP, VVV, ZEC, ZRO
      (`limitedBy: voucherBlocked`). BTC, ETH, SOL are fine.
 3. **Verify read-only first:**
@@ -100,6 +104,9 @@ The dashboard previews but never submits.
    edge-lab perps preview BTC --side long --size 0.00013
    ```
    Testnet eligibility should show every check PASS except `execution_mode`.
+
+Run Edge Lab commands from the repository root: the paper ledger and evidence
+are written to `.edge-lab/` under the current directory.
 
 ## 8. Execute (explicit, manual)
 
